@@ -10,7 +10,7 @@ annotateType :: Term -> Env -> Env -> (Term, Sort)
 annotateType (Var v) sortEnv env
  | v `elem` (map fst sortEnv) = let s = (typeOf v sortEnv) in (TopVarSort v s, s)
  | v `elem` (map fst env) = let s = (typeOf v env) in (VarSort v s, s)
- | otherwise = error "The given sort environments do not contain the variable."
+ | otherwise = error $ "The sort environments do not contain the variable " ++ v ++ "."
 annotateType t@(Num n) sortEnv env = (t, IntSort)
 annotateType (Add u v) sortEnv env = annotateTypeArithmeticExp u v Add sortEnv env 
 annotateType (Sub u v) sortEnv env = annotateTypeArithmeticExp u v Sub sortEnv env 
@@ -28,7 +28,7 @@ annotateType (Lambda v s b) sortEnv env = annotateTypeLambda v s b sortEnv env
 annotateTypeBinaryOp :: (Sort, Sort) -> Term -> Term -> (Term -> Term -> Term) -> Env -> Env -> (Term, Sort)
 annotateTypeBinaryOp (s1, s2) u v f sortEnv env
   | s3 == s1 && s4 == s1 = (f t1 t2, s2)
-  | otherwise = error "Type mismatch"
+  | otherwise = error $ "Type mismatch in " ++ show (f u v)
   where (t1, s3) = annotateType u sortEnv env
         (t2, s4) = annotateType v sortEnv env
 
@@ -42,22 +42,22 @@ annotateTypeBoolFormula :: Term -> Term -> (Term -> Term -> Term) -> Env -> Env 
 annotateTypeBoolFormula = annotateTypeBinaryOp (BoolSort, BoolSort)
 
 annotateTypeExists :: String -> Sort -> Term -> Env -> Env -> (Term, Sort)
-annotateTypeExists v s b sortEnv env
-  | s1 == BoolSort = (Exists v s t, BoolSort)
-  | otherwise = error "Type mismatch"
-  where (t, s1) = annotateType b sortEnv ((v, s): env)
+annotateTypeExists v s1 b sortEnv env
+  | s2 == BoolSort = (Exists v s1 t, BoolSort)
+  | otherwise = error $ "Type mismatch in " ++ show (Exists v s1 b)
+  where (t, s2) = annotateType b sortEnv ((v, s1): env)
 
 annotateTypeApp :: Term -> Term -> Env -> Env -> (Term, Sort)
 annotateTypeApp u v sortEnv env 
   | s2 == source = (AppSort t1 t2 target, target)
-  | otherwise = error "Type mismatch"
+  | otherwise = error $ "Type mismatch in " ++ show (App u v)
   where (t1, s1) = annotateType u sortEnv env
         (t2, s2) = annotateType v sortEnv env
         (source, target) = sourceTargetType s1
 
 annotateTypeLambda :: String -> Sort -> Term -> Env -> Env -> (Term, Sort)
-annotateTypeLambda v s b sortEnv env = (LambdaSort v s t s1, Arrow s s1)
-  where (t, s1) = annotateType b sortEnv  ((v, s): env)
+annotateTypeLambda v s1 b sortEnv env = (LambdaSort v s1 t s2, Arrow s1 s2)
+  where (t, s2) = annotateType b sortEnv  ((v, s1): env)
 
 -- Eta expansion
 
@@ -72,8 +72,9 @@ etaExpansion s t = do
   let 
     sorts = init (decomposeSort s)
     (as, bs) = splitAt (length sorts) xs
-    apps = addApps t as
-    lambdas = addLambdas apps (zip as sorts)
+    vars = map (\s -> "x_" ++ s) as
+    apps = addApps t vars
+    lambdas = addLambdas apps (zip vars sorts)
   put bs
   return lambdas
 
@@ -145,7 +146,7 @@ addLambdas :: Term -> Env -> Term
 addLambdas = foldr addLambda
 
 addLambda :: (String, Sort) -> Term -> Term
-addLambda (v, s) t = LambdaSort ("x_" ++ v) s t sort
+addLambda (v, s) t = LambdaSort v s t sort
   where sort = Arrow s (calculateSort t)
 
 -- Testing
