@@ -1,8 +1,32 @@
 module Defunctionalize where
 
 import DataTypes
+import HelperFunctions
 import Control.Monad.State
 import System.Random
+
+-- Create definitions of Apply_B
+{-}
+createApplys :: String -> Sort -> [Equation]
+createApplys var s = map (createApply var) cumulativeSorts
+  where sorts' = decomposeSort s
+        sort = take (length sorts' - 1) sorts'
+        cumulativeSorts = drop 1 $ scanl (\xs -> \x -> xs ++ x) [] sorts
+
+createApply :: String -> [Sort] -> State [String] Equation
+createApply var sorts = do
+  let n = length sorts
+      lastSort = last sorts
+      lastSort' = defunctionalizeSort lastSort
+  xs <- get
+  ((x:y:z:zs), ws) = splitAt (n + 2) xs
+  put ws
+  let varX = "x_" ++ x
+      varY = "x_" ++ y
+      varZ = "x_" ++ z
+      app1 = addApps 
+      eq1 = Eq (VarSort varX ClosrSort) -}
+
 
 -- Defunctionalization of terms with base sorts
 
@@ -39,7 +63,7 @@ defunctionalizeBaseApp u v _
           varY = "x_" ++ y
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeArrow v varY
-      let t3 = AppSort (Var "IOMatch_ClosrSort") (Var varX) (Arrow ClosrSort BoolSort)
+      let t3 = AppSort (TopVarSort "IOMatch_ClosrSort" sortIOMatch) (Var varX) (Arrow ClosrSort BoolSort)
           t4 = AppSort t3 (Var varY) BoolSort
           t5 = Exists varY ClosrSort (And t2 t4)
       return (Exists varX ClosrSort (And t1 t5))
@@ -49,10 +73,11 @@ defunctionalizeBaseApp u v _
       let varX = "x_" ++ x
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeBase v
-      let t3 = AppSort (Var ("IOMatch" ++ show sort)) (Var varX) (Arrow sort BoolSort)
+      let t3 = AppSort (TopVarSort ("IOMatch_" ++ show sort) sortIOMatch) (Var varX) (Arrow sort BoolSort)
           t4 = AppSort t3 t2 BoolSort
       return (Exists varX ClosrSort (And t1 t4))
   where sort = calculateSort v
+        sortIOMatch = Arrow ClosrSort (Arrow (defunctionalizeSort sort) BoolSort)
                            
 -- Defunctionalization of terms with arrow sorts
 
@@ -61,7 +86,7 @@ defunctionalizeArrow t@(VarSort v s) h
   | isHigherOrderSort s = return (Eq (Var h) t)
   | otherwise = error $ "The type of " ++ show t ++ " is first order." 
 defunctionalizeArrow t@(TopVarSort v s) h
-  | isHigherOrderSort s = return (Eq (Var h) (Const ("C^0_" ++ v)))
+  | isHigherOrderSort s = return (Eq (Var h) (Const ("C^0_" ++ v) ClosrSort))
   | otherwise = error $ "The top-level relational variable " ++ show t ++ "has a base sort."
 defunctionalizeArrow (AppSort u v s) h = defunctionalizeArrowApp u v s h
 
@@ -74,7 +99,7 @@ defunctionalizeArrowApp u v (Arrow s1 s2) h
           varY = "x_" ++ y
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeArrow v varY
-      let t3 = AppSort (Const "Apply_ClosrSort") (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
+      let t3 = AppSort (TopVarSort "Apply_ClosrSort" sortApply) (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
           t4 = AppSort t3 (Var varY) (Arrow ClosrSort BoolSort)
           t5 = AppSort t4 (Var h) BoolSort
           t6 = Exists varY ClosrSort (And t2 t5)
@@ -85,13 +110,20 @@ defunctionalizeArrowApp u v (Arrow s1 s2) h
       let varX = "x_" ++ x
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeBase v
-      -- App should be replaced with AppSort
-      let t3 = AppSort (Const ("Apply_" ++ show s)) (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
+      let t3 = AppSort (TopVarSort ("Apply_" ++ show s) sortApply) (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
           t4 = AppSort t3 t2 (Arrow ClosrSort BoolSort)
           t5 = AppSort t4 (Var h) BoolSort
       return (Exists varX ClosrSort (And t1 t5))
   where s = calculateSort v
-defunctionalizeArrowApp u v _ _ = error "Type mismatch: higher-order sort is expected."
+        sortApply = Arrow ClosrSort (Arrow (defunctionalizeSort s) (Arrow ClosrSort ClosrSort))
+defunctionalizeArrowApp u v s _ = error $ "The type of " ++ show (AppSort u v s) ++ " is first order."
+
+-- Defunctionalization of sorts
+
+defunctionalizeSort :: Sort -> Sort
+defunctionalizeSort s
+  | isHigherOrderSort s = ClosrSort
+  | otherwise = s
 
 -- Testing
 

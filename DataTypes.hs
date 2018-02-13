@@ -33,7 +33,7 @@ data MonoProblem = MProblem [(String, Sort)] [(String, Term)] Term
 data Sort = IntSort | BoolSort | ClosrSort | Arrow Sort Sort
             deriving (Show, Eq)
   
-data Term = Var String | Num Int | Const String
+data Term = Var String | Num Int | Const String Sort
           | TopVarSort String Sort
           | VarSort String Sort
           | App Term Term
@@ -41,7 +41,7 @@ data Term = Var String | Num Int | Const String
           | And Term Term
           | Or Term Term
           | Lambda String Sort Term
-          | LambdaSort String Sort Term Sort
+          | LambdaSort String Sort Term Sort -- The second sort is the sort of the body of the abstraction
           | Exists String Sort Term
           | Sma Term Term
           | SmaEq Term Term
@@ -54,32 +54,3 @@ data Term = Var String | Num Int | Const String
 
 type Equation = (String, Term)
 type Env = [(String, Sort)]
-
-
-isHigherOrderSort :: Sort -> Bool
-isHigherOrderSort s
-  | s == IntSort || s == BoolSort = False
-  | otherwise = True
-
-
-decomposeSort :: Sort -> [Sort]
-decomposeSort IntSort = [IntSort]
-decomposeSort BoolSort = [BoolSort]
-decomposeSort (Arrow source target) = source : decomposeSort target
-
-calculateSort :: Term -> Sort
-calculateSort (TopVarSort v s) = s
-calculateSort (VarSort v s) = s
-calculateSort (Num n) = IntSort
-calculateSort (Add u v) = IntSort
-calculateSort (Sub u v) = IntSort
-calculateSort (Sma u v) = BoolSort
-calculateSort (SmaEq u v) = BoolSort
-calculateSort (Eq u v) = BoolSort
-calculateSort (Lar u v) = BoolSort
-calculateSort (LarEq u v) = BoolSort
-calculateSort (And u v) = BoolSort
-calculateSort (Or u v) = BoolSort
-calculateSort (AppSort u v s) = s
-calculateSort (Exists v s b) = BoolSort
-calculateSort (LambdaSort v s1 b s2) = Arrow s1 s2

@@ -1,6 +1,7 @@
 module Preproces where
 
 import DataTypes
+import HelperFunctions
 import Control.Monad.State
 import System.Random
 
@@ -126,40 +127,24 @@ extractFreeVars (AppSort u v s)= extractFreeVars u ++ (extractFreeVars v)
 extractFreeVars (Exists v s b) = extractFreeVars b
 extractFreeVars (LambdaSort v s1 b s2) = extractFreeVars b
 
--- Helper functions
-
-sourceTargetType :: Sort -> (Sort, Sort)
-sourceTargetType (Arrow s t) = (s, t)
-sourceTargetType _ = error "This is not an arrow type."
-
-typeOf :: String -> Env -> Sort
-typeOf v env = head [s | (v,s) <- env]
-
-addApps :: Term -> [String] -> Term
-addApps = foldl addApp
-
-addApp :: Term -> String -> Term
-addApp t v = AppSort t (Var v) target
-  where (source, target) = sourceTargetType (calculateSort t)
-
-addLambdas :: Term -> Env -> Term
-addLambdas = foldr addLambda
-
-addLambda :: (String, Sort) -> Term -> Term
-addLambda (v, s) t = LambdaSort v s t sort
-  where sort = Arrow s (calculateSort t)
-
 -- Testing
 
+-- Sample Term
 sample = Lambda "x" IntSort (App (Var "f") (Lambda "y" BoolSort (Num 1)))
+
+-- Sort environtment for the variable f
 sortEnv = [("f", Arrow (Arrow BoolSort IntSort) (Arrow BoolSort IntSort))]
+
+-- Sort of the sample term
 sampleSort = Arrow IntSort (Arrow BoolSort IntSort)
 
 splitEvery :: Int -> [a] -> [[a]]
 splitEvery n xs = as : (splitEvery n bs)
   where (as, bs) = splitAt n xs
 
-sampleCs = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
+-- Infinite seqence of random strings for fresh variables
+randomStrings = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
+
 annotatedSample = fst $ annotateType sample sortEnv []
-output1 = fst $ runState (etaExpansion sampleSort annotatedSample) sampleCs
-output2 = fst $ runState (elimAnonymIgnoreLambdas annotatedSample) sampleCs
+outputNoAnonym = fst $ runState (elimAnonymIgnoreLambdas annotatedSample) randomStrings
+outputEtaExpanded = fst $ runState (etaExpansion sampleSort (fst outputNoAnonym)) randomStrings
