@@ -5,13 +5,13 @@ import HelperFunctions
 import Control.Monad.State
 import System.Random
 
--- Create definitions of Apply_B
-{-}
+-- Produce definitions of Apply_B
+
 createApplys :: String -> Sort -> [Equation]
 createApplys var s = map (createApply var) cumulativeSorts
-  where sorts' = decomposeSort s
-        sort = take (length sorts' - 1) sorts'
-        cumulativeSorts = drop 1 $ scanl (\xs -> \x -> xs ++ x) [] sorts -}
+  where sorts = decomposeSort s
+        sorts' = take (length sorts - 1) sorts
+        cumulativeSorts = drop 1 $ scanl (\xs -> \x -> xs ++ [x]) [] sorts'
 
 createApply :: String -> [Sort] -> Equation
 createApply var ts = ("Apply_" ++ show lastSort, lambdas)
