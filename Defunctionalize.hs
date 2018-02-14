@@ -36,6 +36,31 @@ constSort (t:ts) = Arrow (defunctionalizeSort t) (constSort ts)
 constName :: String -> Int -> String
 constName var n = "C^" ++ show n ++ "_" ++ var
 
+-- Defunctionalization of definitions of top-level relational variables
+
+defunctionalize :: String -> Term -> State [String] Equation
+defunctionalize var t = do
+  (x:xs) <- get
+  put xs
+  let varX = "x_" ++ x
+      (b, vars) = decomposeLambdas t
+      vars' = init vars
+      (x_m, s) = last vars
+      arity = length vars
+  b' <- defunctionalizeBase b
+  let cSort = constSort $ map snd vars'
+      const = Const (constName var (arity - 1)) cSort
+      apps = addApps const (map fst vars')
+      conjunction = And (Eq (Var varX) apps) b'
+      exists = addExists conjunction vars'
+      lambdas = Lambda varX ClosrSort (Lambda x_m s exists)
+  return ("IOMatch_" ++ show s, lambdas)
+  
+decomposeLambdas :: Term -> (Term, Env)
+decomposeLambdas (Lambda v s b) = (t, (v, defunctionalizeSort s):env)
+  where (t, env) = decomposeLambdas b
+decomposeLambdas t = (t, [])
+
 -- Defunctionalization of terms with base sorts
 
 defunctionalizeBase :: Term -> State [String] Term
@@ -91,10 +116,10 @@ defunctionalizeBaseApp u v _
 
 defunctionalizeArrow :: Term -> String -> State [String] Term
 defunctionalizeArrow t@(VarSort v s) h
-  | isHigherOrderSort s = return (Eq (Var h) t)
+  | isHigherOrderSort s = return (Eq (VarSort v ClosrSort) (VarSort v ClosrSort))
   | otherwise = error $ "The type of " ++ show t ++ " is first order." 
 defunctionalizeArrow t@(TopVarSort v s) h
-  | isHigherOrderSort s = return (Eq (Var h) (Const ("C^0_" ++ v) ClosrSort))
+  | isHigherOrderSort s = return (Eq (VarSort h ClosrSort) (Const ("C^0_" ++ v) ClosrSort))
   | otherwise = error $ "The top-level relational variable " ++ show t ++ "has a base sort."
 defunctionalizeArrow (AppSort u v s) h = defunctionalizeArrowApp u v s h
 
@@ -135,7 +160,9 @@ defunctionalizeSort s
 
 -- Testing
 
-sample = AppSort (VarSort "f" (Arrow IntSort IntSort)) (Add (Num 1) (Num 3)) IntSort
+fSort = Arrow IntSort (Arrow IntSort BoolSort)
+body = AppSort (AppSort (VarSort "f" fSort) (VarSort "x" IntSort) (Arrow IntSort BoolSort)) (VarSort "y" IntSort) BoolSort
+sample = Lambda "f" fSort (Lambda "x" IntSort (Lambda "y" IntSort body))
 
 splitEvery :: Int -> [a] -> [[a]]
 splitEvery n xs = as : (splitEvery n bs)
@@ -143,4 +170,4 @@ splitEvery n xs = as : (splitEvery n bs)
 
 sampleCs = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
 
-output = fst $ runState (defunctionalizeBase sample) sampleCs
+output = fst $ runState (defunctionalize "Apply" sample) sampleCs
