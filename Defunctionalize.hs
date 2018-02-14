@@ -11,22 +11,30 @@ createApplys :: String -> Sort -> [Equation]
 createApplys var s = map (createApply var) cumulativeSorts
   where sorts' = decomposeSort s
         sort = take (length sorts' - 1) sorts'
-        cumulativeSorts = drop 1 $ scanl (\xs -> \x -> xs ++ x) [] sorts
+        cumulativeSorts = drop 1 $ scanl (\xs -> \x -> xs ++ x) [] sorts -}
 
-createApply :: String -> [Sort] -> State [String] Equation
-createApply var sorts = do
-  let n = length sorts
-      lastSort = last sorts
-      lastSort' = defunctionalizeSort lastSort
-  xs <- get
-  ((x:y:z:zs), ws) = splitAt (n + 2) xs
-  put ws
-  let varX = "x_" ++ x
-      varY = "x_" ++ y
-      varZ = "x_" ++ z
-      app1 = addApps 
-      eq1 = Eq (VarSort varX ClosrSort) -}
+createApply :: String -> [Sort] -> Equation
+createApply var ts = ("Apply_" ++ show lastSort, lambdas)
+  where arity = length sorts
+        vars = map (\n -> "a_" ++ show n) [1..(arity - 1)]
+        sorts = map defunctionalizeSort ts
+        lastSort = last sorts
+        cSortFirst = constSort $ init sorts
+        constFirst = Const (constName var(arity - 1)) cSortFirst
+        appsFirst = addApps constFirst vars
+        cSortSecond = constSort sorts
+        constSecond = Const (constName var arity) cSortSecond
+        appsSecond = addApps constSecond (vars ++ ["y"])
+        conjunction = And (Eq (VarSort "x" ClosrSort) appsFirst) (Eq (VarSort "z" ClosrSort) appsSecond)
+        exists = addExists conjunction (zip vars sorts)
+        lambdas = Lambda "x" ClosrSort (Lambda "y" lastSort (Lambda "z" ClosrSort exists))
 
+constSort :: [Sort] -> Sort
+constSort [] = ClosrSort
+constSort (t:ts) = Arrow (defunctionalizeSort t) (constSort ts)
+
+constName :: String -> Int -> String
+constName var n = "C^" ++ show n ++ "_" ++ var
 
 -- Defunctionalization of terms with base sorts
 
