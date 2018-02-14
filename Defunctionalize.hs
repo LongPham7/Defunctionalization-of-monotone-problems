@@ -116,7 +116,7 @@ defunctionalizeBaseApp u v _
 
 defunctionalizeArrow :: Term -> String -> State [String] Term
 defunctionalizeArrow t@(VarSort v s) h
-  | isHigherOrderSort s = return (Eq (VarSort v ClosrSort) (VarSort v ClosrSort))
+  | isHigherOrderSort s = return (Eq (VarSort h ClosrSort) (VarSort v ClosrSort))
   | otherwise = error $ "The type of " ++ show t ++ " is first order." 
 defunctionalizeArrow t@(TopVarSort v s) h
   | isHigherOrderSort s = return (Eq (VarSort h ClosrSort) (Const ("C^0_" ++ v) ClosrSort))
