@@ -2,3 +2,5 @@
 *.o
 *.exe
 *.info
+Tokeniser.hs
+Parser.hs
