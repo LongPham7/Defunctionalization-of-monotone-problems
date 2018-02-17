@@ -1,6 +1,7 @@
 module HelperFunctions where
 
 import DataTypes
+import System.Random
 
 isHigherOrderSort :: Sort -> Bool
 isHigherOrderSort s
@@ -29,13 +30,14 @@ calculateSort (Or u v) = BoolSort
 calculateSort (AppSort u v s) = s
 calculateSort (Exists v s b) = BoolSort
 calculateSort (LambdaSort v s1 b s2) = Arrow s1 s2
+calculateSort t = error (show t ++ " does not have type annotation.")
 
 sourceTargetType :: Sort -> (Sort, Sort)
 sourceTargetType (Arrow s t) = (s, t)
 sourceTargetType _ = error "This is not an arrow type."
 
 typeOf :: String -> Env -> Sort
-typeOf v env = head [s | (v,s) <- env]
+typeOf var env = head [s | (v,s) <- env, v ==  var]
 
 addApps :: Term -> [String] -> Term
 addApps = foldl addApp
@@ -53,3 +55,10 @@ addLambda (v, s) t = LambdaSort v s t (calculateSort t)
 addExists :: Term -> Env -> Term
 addExists = foldr addExist
   where addExist (v, s) t = Exists v s t
+
+splitEvery :: Int -> [a] -> [[a]]
+splitEvery n xs = as : (splitEvery n bs)
+  where (as, bs) = splitAt n xs
+
+-- Infinite seqence of random strings for fresh variables
+freshVars = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)

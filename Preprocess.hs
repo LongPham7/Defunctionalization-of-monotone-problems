@@ -3,7 +3,6 @@ module Preprocess where
 import DataTypes
 import HelperFunctions
 import Control.Monad.State
-import System.Random
 
 -- Type annotation
 
@@ -139,13 +138,6 @@ sortEnv = [("f", Arrow (Arrow BoolSort IntSort) (Arrow BoolSort IntSort))]
 -- Sort of the sample term
 sampleSort = Arrow IntSort (Arrow BoolSort IntSort)
 
-splitEvery :: Int -> [a] -> [[a]]
-splitEvery n xs = as : (splitEvery n bs)
-  where (as, bs) = splitAt n xs
-
--- Infinite seqence of random strings for fresh variables
-randomStrings = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
-
 annotatedSample = fst $ annotateType sample sortEnv []
-outputNoAnonym = fst $ runState (elimAnonymIgnoreLambdas annotatedSample) randomStrings
-outputEtaExpanded = fst $ runState (etaExpansion sampleSort (fst outputNoAnonym)) randomStrings
+outputNoAnonym = fst $ runState (elimAnonymIgnoreLambdas annotatedSample) freshVars
+outputEtaExpanded = fst $ runState (etaExpansion sampleSort (fst outputNoAnonym)) freshVars

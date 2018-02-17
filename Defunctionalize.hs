@@ -3,7 +3,6 @@ module Defunctionalize where
 import DataTypes
 import HelperFunctions
 import Control.Monad.State
-import System.Random
 
 -- Produce definitions of Apply_B
 
@@ -14,7 +13,7 @@ createApplys var s = map (createApply var) cumulativeSorts
         cumulativeSorts = drop 1 $ scanl (\xs -> \x -> xs ++ [x]) [] sorts'
 
 createApply :: String -> [Sort] -> Equation
-createApply var ts = ("Apply_" ++ show lastSort, lambdas)
+createApply var ts = ("Apply_" ++ show lastSort, secondLambda)
   where arity = length sorts
         vars = map (\n -> "a_" ++ show n) [1..(arity - 1)]
         sorts = map defunctionalizeSort ts
@@ -27,7 +26,8 @@ createApply var ts = ("Apply_" ++ show lastSort, lambdas)
         appsSecond = addApps constSecond (vars ++ ["y"])
         conjunction = And (Eq (VarSort "x" ClosrSort) appsFirst) (Eq (VarSort "z" ClosrSort) appsSecond)
         exists = addExists conjunction (zip vars sorts)
-        lambdas = Lambda "x" ClosrSort (Lambda "y" lastSort (Lambda "z" ClosrSort exists))
+        firstLambda = LambdaSort "y" lastSort (LambdaSort "z" ClosrSort exists BoolSort) (Arrow ClosrSort BoolSort)
+        secondLambda = LambdaSort "x" ClosrSort firstLambda (Arrow lastSort (Arrow ClosrSort BoolSort))
 
 constSort :: [Sort] -> Sort
 constSort [] = ClosrSort
@@ -53,11 +53,11 @@ defunctionalize var t = do
       apps = addApps const (map fst vars')
       conjunction = And (Eq (Var varX) apps) b'
       exists = addExists conjunction vars'
-      lambdas = Lambda varX ClosrSort (Lambda x_m s exists)
+      lambdas = LambdaSort varX ClosrSort (LambdaSort x_m s exists BoolSort) (Arrow s BoolSort)
   return ("IOMatch_" ++ show s, lambdas)
   
 decomposeLambdas :: Term -> (Term, Env)
-decomposeLambdas (Lambda v s b) = (t, (v, defunctionalizeSort s):env)
+decomposeLambdas (LambdaSort v s1 b s2) = (t, (v, defunctionalizeSort s1):env)
   where (t, env) = decomposeLambdas b
 decomposeLambdas t = (t, [])
 
@@ -162,13 +162,8 @@ defunctionalizeSort s
 
 fSort = Arrow IntSort (Arrow IntSort BoolSort)
 body = AppSort (AppSort (VarSort "f" fSort) (VarSort "x" IntSort) (Arrow IntSort BoolSort)) (VarSort "y" IntSort) BoolSort
-sample = Lambda "f" fSort (Lambda "x" IntSort (Lambda "y" IntSort body))
+firstLambda = LambdaSort "y" IntSort body BoolSort
+secondLambda = LambdaSort "x" IntSort firstLambda (Arrow IntSort BoolSort)
+sample = LambdaSort "f" fSort secondLambda (Arrow IntSort (Arrow IntSort BoolSort))
 
-splitEvery :: Int -> [a] -> [[a]]
-splitEvery n xs = as : (splitEvery n bs)
-  where (as, bs) = splitAt n xs
-
--- Infinite seqence of random strings for fresh variables
-randomStrings = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
-
-output = fst $ runState (defunctionalize "Apply" sample) randomStrings
+output = fst $ runState (defunctionalize "Apply" sample) freshVars
