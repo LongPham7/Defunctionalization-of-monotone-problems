@@ -45,9 +45,9 @@ showSort BoolSort = "Bool"
 showSort ClosrSort = "Closr"
 showSort (Arrow s t) = "(" ++ showSort s ++ ") -> (" ++ showSort t ++ ")"
 
--- Var, TopVar, and Lambda are used in a source monotone problem. These are
--- replaced with VarSort, TopVarSort, and LambdaSort, respectively, during type
--- annotation.
+-- Var, TopVar, App, and Lambda are used in a source monotone problem. These are
+-- replaced with VarSort, TopVarSort, AppSort, and LambdaSort, respectively,
+-- during type annotation.
 data Term = Var String | Num Int | Const String Sort
           | TopVarSort String Sort
           | VarSort String Sort
