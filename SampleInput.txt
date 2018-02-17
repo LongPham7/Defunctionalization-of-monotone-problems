@@ -5,8 +5,8 @@ add: int -> int -> int -> bool
 twice: (int -> int) -> int -> int -> bool
 
 program
-#add := (\ x: int. (x +1 = 2)) 1;
 add := \x: int. (\y: int. (\z:int. (x + y = z)));
+twice := \f: int -> int -> bool. (\x: int. (\y:int. (E z:int. (((f x) z) && (f z) y))));
 
 goal
 E x: int. (((add 1) 2) x)

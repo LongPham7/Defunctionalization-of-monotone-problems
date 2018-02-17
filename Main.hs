@@ -4,9 +4,9 @@ import Tokeniser(alexScanTokens)
 import Parser(parse)
 import DataTypes
 import HelperFunctions
-import Control.Monad.State
 import Preprocess
 import Defunctionalize
+import Control.Monad.State
 
 main :: IO()
 main = do
@@ -16,6 +16,8 @@ main = do
       input = parse tokens
       output = fst $ runState (produceOutput input) freshVars
     print output
+
+-- Combine preprocessing and defunctionalization
 
 produceOutput :: MonoProblem -> State [String] MonoProblem
 produceOutput (MProblem sortEnv eqs goal) = do
