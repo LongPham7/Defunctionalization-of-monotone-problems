@@ -81,6 +81,7 @@ etaExpansion s t = do
 
 -- Eliminate anonymous functions
 
+-- This eliminates anonymous functions whilst ignoring the outermost lambda abstractions.
 elimAnonymIgnoreLambdas :: Term -> State [String] (Term, [Equation])
 elimAnonymIgnoreLambdas (LambdaSort v s1 b s2) = elimAnonymIgnoreLambdas b >>= (\(u, eqs) -> return (LambdaSort v s1 u s2, eqs))
 elimAnonymIgnoreLambdas t = elimAnonym t

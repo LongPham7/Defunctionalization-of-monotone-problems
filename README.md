@@ -42,4 +42,4 @@ Then run the main Haskell module:
     ghc Main.hs
     Get-content SampleInput.txt | .\Main
 
-The second line feeds an input file, SampleInput.txt, into the standard input and then pipelines it to the executable of the Haskell program. `SampleInput.txt` in `Get-content SampleInput.txt | .\Main` can be replaced with the name of your own input file. Note that this command is specific to Microsoft Windows Powershell. 
+The second line feeds an input file, SampleInput.txt, into the standard input and then pipelines it to the executable of the Haskell program. `SampleInput.txt` in `Get-content SampleInput.txt | .\Main` can be replaced with the name of your own input file. Note that `Get-content SampleInput.txt | .\Main` is specific to Microsoft Windows Powershell. 

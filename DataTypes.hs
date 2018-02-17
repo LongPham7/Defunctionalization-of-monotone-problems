@@ -1,33 +1,36 @@
 module DataTypes where
 
 data Token = TokenEnvDec
-    | TokenProgramDec
-    | TokenGoalDec
-    | TokenExists
-    | TokenDef
-    | TokenEndMarker
-    | TokenLambda
-    | TokenPeriod
-    | TokenAnd
-    | TokenOr
-    | TokenAdd
-    | TokenSub
-    | TokenSmaller
-    | TokenSmallerEq
-    | TokenLarger
-    | TokenLargerEq
-    | TokenEq
-    | TokenNum Int
-    | TokenVar String
-    | TokenColon
-    | TokenIntSort
-    | TokenBoolSort
-    | TokenArrow
-    | TokenLeftParen
-    | TokenRightParen
-    deriving (Show, Eq)
+           | TokenProgramDec
+           | TokenGoalDec
+           | TokenExists
+           | TokenDef
+           | TokenEndMarker
+           | TokenLambda
+           | TokenPeriod
+           | TokenAnd
+           | TokenOr
+           | TokenAdd
+           | TokenSub
+           | TokenSmaller
+           | TokenSmallerEq
+           | TokenLarger
+           | TokenLargerEq
+           | TokenEq
+           | TokenNum Int
+           | TokenVar String
+           | TokenColon
+           | TokenIntSort
+           | TokenBoolSort
+           | TokenArrow
+           | TokenLeftParen
+           | TokenRightParen
+           deriving (Show, Eq)
 
-data MonoProblem = MProblem [(String, Sort)] [(String, Term)] Term
+type Equation = (String, Term)
+type Env = [(String, Sort)]
+
+data MonoProblem = MProblem Env [Equation] Term
                    deriving (Show, Eq)
   
 data Sort = IntSort | BoolSort | ClosrSort | Arrow Sort Sort
@@ -41,7 +44,10 @@ showSort IntSort = "Int"
 showSort BoolSort = "Bool"
 showSort ClosrSort = "Closr"
 showSort (Arrow s t) = "(" ++ showSort s ++ ") -> (" ++ showSort t ++ ")"
-  
+
+-- Var, TopVar, and Lambda are used in a source monotone problem. These are
+-- replaced with VarSort, TopVarSort, and LambdaSort, respectively, during type
+-- annotation.
 data Term = Var String | Num Int | Const String Sort
           | TopVarSort String Sort
           | VarSort String Sort
@@ -84,6 +90,3 @@ showTerm (Lar u v) = showTerm u ++ " > " ++ showTerm v
 showTerm (LarEq u v) = showTerm u ++ " >= " ++ showTerm v
 showTerm (Add u v) = "(" ++ showTerm u ++ " + " ++ showTerm v ++ ")"
 showTerm (Sub u v) = "(" ++ showTerm u ++ " - " ++ showTerm v ++ ")"
-
-type Equation = (String, Term)
-type Env = [(String, Sort)]

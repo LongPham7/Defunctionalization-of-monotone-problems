@@ -36,7 +36,7 @@ constSort (t:ts) = Arrow (defunctionalizeSort t) (constSort ts)
 constName :: String -> Int -> String
 constName var n = "C^" ++ show n ++ "_" ++ var
 
--- Defunctionalization of definitions of top-level relational variables
+-- Produce definitions of IOMatch_B
 
 defunctionalize :: String -> Term -> State [String] Equation
 defunctionalize var t = do
@@ -168,6 +168,7 @@ splitEvery :: Int -> [a] -> [[a]]
 splitEvery n xs = as : (splitEvery n bs)
   where (as, bs) = splitAt n xs
 
-sampleCs = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
+-- Infinite seqence of random strings for fresh variables
+randomStrings = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
 
-output = fst $ runState (defunctionalize "Apply" sample) sampleCs
+output = fst $ runState (defunctionalize "Apply" sample) randomStrings

@@ -10,7 +10,7 @@ isHigherOrderSort s
 decomposeSort :: Sort -> [Sort]
 decomposeSort IntSort = [IntSort]
 decomposeSort BoolSort = [BoolSort]
-decomposeSort (Arrow source target) = source : decomposeSort target
+decomposeSort (Arrow source target) = source : (decomposeSort target)
 
 calculateSort :: Term -> Sort
 calculateSort (TopVarSort v s) = s
