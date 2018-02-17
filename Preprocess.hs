@@ -1,4 +1,4 @@
-module Preproces where
+module Preprocess where
 
 import DataTypes
 import HelperFunctions
