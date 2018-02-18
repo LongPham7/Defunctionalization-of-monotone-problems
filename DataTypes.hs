@@ -101,13 +101,13 @@ showTerm (TopVarSort v s) = v
 showTerm (VarSort v s) = v
 showTerm (Num n) = show n
 showTerm (Const c s) = c
-showTerm (App u v) = "(" ++ showTerm u ++ " " ++ showTerm v ++ ")"
-showTerm (AppSort u v s) = "(" ++ showTerm u ++ " " ++ showTerm v ++ ")"
+showTerm (App u v) = showApp u v
+showTerm (AppSort u v s) = showApp u v
 showTerm (And u v) = "(" ++ showTerm u ++ " && " ++ showTerm v ++ ")"
 showTerm (Or u v) = "(" ++ showTerm u ++ " || " ++ showTerm v ++ ")"
-showTerm (Lambda v s b) = "(Lambda " ++ v ++ ": " ++ show s ++ ". " ++ showTerm b ++ ")"
-showTerm (LambdaSort v s1 b s2) = "(Lambda " ++ v ++ ": " ++ show s1 ++ ". " ++ showTerm b ++ ")"
-showTerm (Exists v s b) = "(E " ++ v ++ ": " ++ show s ++ ". " ++ showTerm b ++ ")"
+showTerm (Lambda v s b) = "\\" ++ v ++ ": " ++ show s ++ ". (" ++ showTerm b ++ ")"
+showTerm (LambdaSort v s1 b s2) = "\\" ++ v ++ ": " ++ show s1 ++ ". (" ++ showTerm b ++ ")"
+showTerm (Exists v s b) = "E " ++ v ++ ": " ++ show s ++ ". (" ++ showTerm b ++ ")"
 showTerm (Sma u v) = showTerm u ++ " < " ++ showTerm v
 showTerm (SmaEq u v) = showTerm u ++ " <= " ++ showTerm v
 showTerm (Eq u v) = showTerm u ++ " = " ++ showTerm v
@@ -115,3 +115,16 @@ showTerm (Lar u v) = showTerm u ++ " > " ++ showTerm v
 showTerm (LarEq u v) = showTerm u ++ " >= " ++ showTerm v
 showTerm (Add u v) = "(" ++ showTerm u ++ " + " ++ showTerm v ++ ")"
 showTerm (Sub u v) = "(" ++ showTerm u ++ " - " ++ showTerm v ++ ")"
+
+showApp :: Term -> Term -> String
+showApp u v
+  | isAtomicTerm v = showTerm u ++ " " ++ showTerm v
+  | otherwise = showTerm u ++ " (" ++ showTerm v ++ ")"
+
+isAtomicTerm :: Term -> Bool
+isAtomicTerm (Var v) = True
+isAtomicTerm (TopVarSort v s) = True
+isAtomicTerm (VarSort v s) = True
+isAtomicTerm (Num n) = True
+isAtomicTerm (Const c s) = True
+isAtomicTerm t = False
