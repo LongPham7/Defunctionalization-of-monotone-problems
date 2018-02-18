@@ -30,9 +30,31 @@ data Token = TokenEnvDec
 type Equation = (String, Term)
 type Env = [(String, Sort)]
 
+-- Monotone problems
+
 data MonoProblem = MProblem Env [Equation] Term
-                   deriving (Show, Eq)
-  
+                   deriving (Eq)
+
+instance Show MonoProblem where
+  show = showMonoProblem
+
+showMonoProblem :: MonoProblem -> String
+showMonoProblem (MProblem sortEnv eqs goal) = 
+  let envString = "environment\n" ++ showEnv sortEnv
+      eqsString = "program\n" ++ showEqs eqs
+      goalString = "goal\n" ++ show goal
+  in envString ++ "\n" ++ eqsString ++ "\n" ++ goalString
+
+showEnv :: Env -> String
+showEnv env = concat $ map showJudgement env
+  where showJudgement (var, sort) = var ++ ": " ++ show sort ++ "\n"
+
+showEqs :: [Equation] -> String
+showEqs eqs = concat $ map showEq eqs
+  where showEq (var, term) = var ++ " := " ++ show term ++ "\n"
+
+-- Sorts
+
 data Sort = IntSort | BoolSort | ClosrSort | Arrow Sort Sort
             deriving (Eq)
 
@@ -43,7 +65,10 @@ showSort :: Sort -> String
 showSort IntSort = "Int"
 showSort BoolSort = "Bool"
 showSort ClosrSort = "Closr"
-showSort (Arrow s t) = "(" ++ showSort s ++ ") -> (" ++ showSort t ++ ")"
+showSort (Arrow s@(Arrow t1 t2) t3) = "(" ++ showSort s ++ ") -> " ++ showSort t3
+showSort (Arrow s t) = showSort s ++ " -> " ++ showSort t
+
+-- Goal terms
 
 -- Var, TopVar, App, and Lambda are used in a source monotone problem. These are
 -- replaced with VarSort, TopVarSort, AppSort, and LambdaSort, respectively,
@@ -71,11 +96,11 @@ instance Show Term where
   show = showTerm
 
 showTerm :: Term -> String
-showTerm (Var s) = s
-showTerm (TopVarSort s t) = s
-showTerm (VarSort s t) = s
+showTerm (Var v) = v
+showTerm (TopVarSort v s) = v
+showTerm (VarSort v s) = v
 showTerm (Num n) = show n
-showTerm (Const s t) = s
+showTerm (Const c s) = c
 showTerm (App u v) = "(" ++ showTerm u ++ " " ++ showTerm v ++ ")"
 showTerm (AppSort u v s) = "(" ++ showTerm u ++ " " ++ showTerm v ++ ")"
 showTerm (And u v) = "(" ++ showTerm u ++ " && " ++ showTerm v ++ ")"

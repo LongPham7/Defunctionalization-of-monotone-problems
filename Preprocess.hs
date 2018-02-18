@@ -8,9 +8,9 @@ import Control.Monad.State
 
 annotateType :: Term -> Env -> Env -> (Term, Sort)
 annotateType (Var v) sortEnv env
- | v `elem` (map fst sortEnv) = let s = (typeOf v sortEnv) in (TopVarSort v s, s)
- | v `elem` (map fst env) = let s = (typeOf v env) in (VarSort v s, s)
- | otherwise = error $ "The sort environments do not contain the variable " ++ v ++ "."
+  | v `elem` (map fst sortEnv) = let s = (typeOf v sortEnv) in (TopVarSort v s, s)
+  | v `elem` (map fst env) = let s = (typeOf v env) in (VarSort v s, s)
+  | otherwise = error $ "The sort environments do not contain the variable " ++ v ++ "."
 annotateType t@(Num n) sortEnv env = (t, IntSort)
 annotateType (Add u v) sortEnv env = annotateTypeArithmeticExp u v Add sortEnv env 
 annotateType (Sub u v) sortEnv env = annotateTypeArithmeticExp u v Sub sortEnv env 

@@ -34,7 +34,7 @@ calculateSort t = error (show t ++ " does not have type annotation.")
 
 sourceTargetType :: Sort -> (Sort, Sort)
 sourceTargetType (Arrow s t) = (s, t)
-sourceTargetType _ = error "This is not an arrow type."
+sourceTargetType s = error $ show s ++ " is not an arrow sort."
 
 typeOf :: String -> Env -> Sort
 typeOf var env = head [s | (v,s) <- env, v ==  var]
