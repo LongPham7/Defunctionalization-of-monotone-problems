@@ -5,11 +5,11 @@ add: int -> int -> int -> bool
 twice: (int -> int) -> int -> int -> bool
 
 program
-add := \x: int. (\y: int. (\z:int. (x + y = z)));
-twice := \f: int -> int -> bool. (\x: int. (\y:int. (E z:int. (((f x) z) && (f z) y))));
+add := \x: int. \y: int. \z:int. x + y = z;
+twice := \f: int -> int -> bool. \x: int. \y:int. E z:int. f x z && f z y;
 
 goal
-E x: int. (((add 1) 2) x)
+E x: int. add 1 2 x
 #E x: int -> int -> (bool -> bool). (1 + 1 = 2 && 1 + (8-7) < 3 + 2) && \ x: int. (1 = 1)
 
 # This is a sample comment at the bottom. 

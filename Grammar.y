@@ -1,3 +1,5 @@
+-- The specification of the grammar is attributed to Steven Ramsay.
+
 {
 module Parser where
 import DataTypes
@@ -37,11 +39,12 @@ import DataTypes
   goal         {TokenGoalDec}
 
 
-%nonassoc '<' '<=' '=' '>' '>='
+%nonassoc '.'
 %right '->'
-%left '+' '-'
-%left '&&'
 %left '||'
+%left '&&'
+%nonassoc '<' '<=' '=' '>' '>='
+%left '+' '-'
 
 %%
 
@@ -65,39 +68,38 @@ Definite : {- empty -} { [] }
          | Definite Equation ';' { $2:$1 }
 
 Equation :: { (String, Term) }
-Equation : var ':=' RelationalGoalTerm { ($1,$3) }
+Equation : var ':=' Term { ($1,$3) }
 
-RelationalGoalTerm :: { Term }
-RelationalGoalTerm : FirstOrderTerm { $1 }
-                   | FirstOrderFormula { $1 }
-                   | CompositeRelationalGoalTerm { $1 }
-                   -- With parentheses
-                   | '(' CompositeRelationalGoalTerm ')' { $2 }
+Term :: { Term }
+Term : Term '&&' Term { And $1 $3 }
+     | Term '||' Term { Or $1 $3 }
+     | E var ':' Sort '.' Term { Exists $2 $4 $6 }
+     | '\\' var ':' Sort '.' Term { Lambda $2 $4 $6 }
+     | ApplicativeTerm { $1 }
+     | FirstOrderFormula { $1 }
+     | Term '+' Term { Add $1 $3 }
+     | Term '-' Term { Sub $1 $3 }
+     | '(' Term ')' { $2 }  
+               
+ApplicativeTerm :: { Term }
+ApplicativeTerm : var { Var $1 }
+                | int { Num $1 }
+                | '(' Term ')' '(' Term ')' { App $2 $5 }
+                | '(' Term ')' var { App $2 (Var $4) }
+                | '(' Term ')' int { App $2 (Num $4) }
+                | ApplicativeTerm '(' Term ')' { App $1 $3 }
+                | ApplicativeTerm var { App $1 (Var $2) }
+                | ApplicativeTerm int { App $1 (Num $2) }
 
-CompositeRelationalGoalTerm :: { Term }
-CompositeRelationalGoalTerm : RelationalGoalTerm '&&' RelationalGoalTerm { And $1 $3 }
-                            | RelationalGoalTerm '||' RelationalGoalTerm { Or $1 $3 }
-                            | '\\' var ':' Sort '.' '(' RelationalGoalTerm ')' { Lambda $2 $4 $7 }
-                            | E var ':' Sort '.' '(' RelationalGoalTerm ')' { Exists $2 $4 $7 }
-                            | RelationalGoalTerm RelationalGoalTerm { App $1 $2 }
-
-FirstOrderFormula :: {Term}
-FirstOrderFormula : FirstOrderTerm '<' FirstOrderTerm { Sma $1 $3 }
-                  | FirstOrderTerm '<=' FirstOrderTerm { SmaEq $1 $3 }
-                  | FirstOrderTerm '=' FirstOrderTerm { Eq $1 $3 }
-                  | FirstOrderTerm '>' FirstOrderTerm { Lar $1 $3 }
-                  | FirstOrderTerm '>=' FirstOrderTerm { LarEq $1 $3 }
-                  | '(' FirstOrderFormula ')' { $2 }
-
-FirstOrderTerm :: { Term }
-FirstOrderTerm : var { Var $1 }
-               | int { Num $1 }
-               | FirstOrderTerm '+' FirstOrderTerm { Add $1 $3 }
-               | FirstOrderTerm '-' FirstOrderTerm { Sub $1 $3 }
-               | '(' FirstOrderTerm ')' { $2 }
+FirstOrderFormula :: { Term }
+FirstOrderFormula : Term '<' Term { Sma $1 $3 }
+                  | Term '<=' Term { SmaEq $1 $3 }
+                  | Term '=' Term { Eq $1 $3 }
+                  | Term '>' Term { Lar $1 $3 }
+                  | Term '>=' Term { LarEq $1 $3 }
 
 Goal :: { Term }
-Goal : RelationalGoalTerm { $1 }
+Goal : Term { $1 }
 
 {
 parseError :: [Token] -> a
