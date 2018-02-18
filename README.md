@@ -1,6 +1,6 @@
 # Defunctionalization of monotone logic program safety problems
 
-This is a Haskell program that takes in the specification of a monotone logic program safety problem (often abbreviated as a monotone problem) and produces the result of defunctionalizing the input problem. 
+This is a Haskell program that takes in the specification of a monotone logic program safety problem (often abbreviated as a monotone problem) and produces the result of defunctionalizing the input problem. For simplicity, the constraint language is restricted to the one of integers with addition and subtraction. 
 
 ## Background
 
@@ -43,3 +43,7 @@ Then run the main Haskell module:
     Get-content SampleInput.txt | .\Main
 
 The second line feeds an input file, SampleInput.txt, into the standard input and then pipelines it to the executable of the Haskell program. `SampleInput.txt` in `Get-content SampleInput.txt | .\Main` can be replaced with the name of your own input file. Note that `Get-content SampleInput.txt | .\Main` is specific to Microsoft Windows Powershell. 
+
+## Input format
+
+A sample source monotone problem is available in SampleInput.txt. Notice that each line in the definite formula component (under "program") must end with a semicolon. A detailed grammar can be found in Grammar.y.

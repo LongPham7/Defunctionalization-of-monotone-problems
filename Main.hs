@@ -26,8 +26,20 @@ produceOutput (MProblem sortEnv eqs goal) = do
   iomatches <- recursiveDefunctionalize eqs'
   finalGoal <- defunctionalizeBase goal'
   let finalEqs = iomatches ++ applys
-      finalSortEnv = map (\(var, term) -> (var, calculateSort term)) finalEqs
+      finalEnvVars = map (\(var, term) -> var) finalEqs
+      finalSortEnv  = [(v, s) | (v, s) <- candidateSortEnv, v `elem` finalEnvVars]
   return (MProblem finalSortEnv finalEqs finalGoal)
+
+candidateSortEnv :: Env
+candidateSortEnv = iomatchEnv ++ applyEnv
+  where iomatchEnv = [("IOMatch_" ++ show s, iomatchSort s) | s <- [IntSort, BoolSort, ClosrSort]]
+        applyEnv = [("Apply_" ++ show s, applySort s) | s <- [IntSort, BoolSort, ClosrSort]]
+
+iomatchSort :: Sort -> Sort
+iomatchSort s = Arrow ClosrSort (Arrow s BoolSort)
+
+applySort :: Sort -> Sort
+applySort s = Arrow ClosrSort (Arrow s (Arrow ClosrSort BoolSort))
 
 -- Preprocessing
 
