@@ -46,4 +46,12 @@ The second line feeds an input file, SampleInput.txt, into the standard input an
 
 ## Input format
 
-A sample source monotone problem is available in SampleInput.txt. Notice that each line in the definite formula component (under "program") must end with a semicolon. A detailed grammar can be found in Grammar.y.
+A sample source monotone problem is available in SampleInput.txt. 
+
+The **environment** section is a list of bindings of top-level relational variables and sorts. Each binding may span multiple lines. 
+
+The **program** section is a list of definitions of top-level relational variables. Each definition comprises a top-level relational variable on the left hand side of ':=' and a goal term on the right hand side. Each definition must end with a semicolon. A detailed grammar of goal terms can be found in Grammar.y.
+
+The **goal** consists of a single goal term of the propositional sort. 
+
+One-line comments begin with #. Multiline comments are not supported. 
