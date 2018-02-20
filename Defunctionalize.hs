@@ -96,7 +96,7 @@ defunctionalizeBaseApp u v _
           varY = "x_" ++ y
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeArrow v varY
-      let t3 = AppSort (TopVarSort "IOMatch_ClosrSort" sortIOMatch) (Var varX) (Arrow ClosrSort BoolSort)
+      let t3 = AppSort (TopVarSort ("IOMatch_" ++ show ClosrSort) sortIOMatch) (Var varX) (Arrow ClosrSort BoolSort)
           t4 = AppSort t3 (Var varY) BoolSort
           t5 = Exists varY ClosrSort (And t2 t4)
       return (Exists varX ClosrSort (And t1 t5))
@@ -132,7 +132,7 @@ defunctionalizeArrowApp u v (Arrow s1 s2) h
           varY = "x_" ++ y
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeArrow v varY
-      let t3 = AppSort (TopVarSort "Apply_ClosrSort" sortApply) (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
+      let t3 = AppSort (TopVarSort ("Apply_" ++ show ClosrSort) sortApply) (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
           t4 = AppSort t3 (Var varY) (Arrow ClosrSort BoolSort)
           t5 = AppSort t4 (Var h) BoolSort
           t6 = Exists varY ClosrSort (And t2 t5)

@@ -62,9 +62,9 @@ instance Show Sort where
   show = showSort
 
 showSort :: Sort -> String
-showSort IntSort = "Int"
-showSort BoolSort = "Bool"
-showSort ClosrSort = "Closr"
+showSort IntSort = "int"
+showSort BoolSort = "bool"
+showSort ClosrSort = "closr"
 showSort (Arrow s@(Arrow t1 t2) t3) = "(" ++ showSort s ++ ") -> " ++ showSort t3
 showSort (Arrow s t) = showSort s ++ " -> " ++ showSort t
 
