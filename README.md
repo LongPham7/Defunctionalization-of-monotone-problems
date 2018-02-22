@@ -44,9 +44,18 @@ Then run the main Haskell module:
 
 The second line feeds an input file, SampleInput.txt, into the standard input and then pipelines it to the executable of the Haskell program. `SampleInput.txt` in `Get-content SampleInput.txt | .\Main` can be replaced with the name of your own input file. Note that `Get-content SampleInput.txt | .\Main` is specific to Microsoft Windows Powershell. 
 
-## Input format
+## Sample inputs
 
-A sample source monotone problem is available in SampleInput.txt. 
+A sample source monotone problem is available in SampleInput.txt. The folder "Sample inputs"
+contains additional source monotone problems. The samples in "Sample inputs" are obtained by manually
+translating some of the Horn clause problems in Toby Cathcart Burn's 
+[implementation project](https://github.com/penteract/HigherOrderHornRefinement) to monotone problems.
+His samples are originally from [MoCHi](http://www-kb.is.s.u-tokyo.ac.jp/~ryosuke/mochi/). 
+
+The algorithm for turning Horn clause problems into monotone problems is 
+described in *Higher-Order Constrained Horn Clauses and Refinement Types* by Toby Cathcart Burn, C.-H Luke Ong, and Steven Ramsay.
+
+## Input format
 
 The **environment** section is a list of bindings of top-level relational variables and sorts. Each binding may span multiple lines. 
 

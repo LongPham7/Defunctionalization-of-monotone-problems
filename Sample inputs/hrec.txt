@@ -1,0 +1,14 @@
+environment
+f : (int->int->bool)->int->int->bool
+succ : int->int->bool
+
+program
+succ := \x: int. \r: int. r = x + 1;
+f := \g: (int -> int -> bool). \x: int. \r: int. (
+(x >= 0 && g x r)
+||
+(x < 0 && (E y:int. g x y && f (f g) y r))
+);
+
+goal
+E n: int. E r:int. (f succ n r) && r < 0

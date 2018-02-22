@@ -1,0 +1,12 @@
+environment
+ack : int->int->int->bool
+
+program
+ack := \m: int. \n: int. \r: int. (
+(m = 0 && r = n + 1)
+|| (m > 0 && n = 0 && ack (m - 1) 1 r)
+|| (m > 0 && n > 0 && (E x: int.ack m (n-1) x && ack (m-1) x r))
+);
+
+goal
+E m: int. E n: int. E r:int. m >= 0 && n >= 0 && ack m n r && r < n

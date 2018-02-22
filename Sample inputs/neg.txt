@@ -1,0 +1,14 @@
+environment
+g : int->int->bool
+twice : (int->int->bool)->(int->bool)->int->bool
+neg : int->int->bool
+
+program
+g := \x: int. \r: int. x = r;
+twice := \f: (int -> int -> bool). \x: (int -> bool). \r: int. (
+E i: int. E j: int. x i && f i j && f j r
+);
+neg := \x: int. \r: int. x + r = 0;
+
+goal
+E n: int. E z:int. n >= 0 && twice neg (g n) z && z < 0

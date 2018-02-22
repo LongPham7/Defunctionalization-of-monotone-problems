@@ -1,0 +1,14 @@
+environment
+make_array : int->int->int->bool
+array_max: int->int->(int->int->bool)->int->int->bool
+
+program
+make_array := \n: int. \i: int. \r: int. n = i + r;
+array_max := \n: int. \i: int. \a: (int -> int -> bool). \m: int. \r: int. (
+(i >= n && r = m)
+||
+(i<n && (E x: int. a i x && (E z:int.((x > m && z = x) || (x <= m && z = m)) && (E w: int. w = i + 1 && array_max n w a z r))))
+);
+
+goal
+E n: int. E m: int. E i: int. E x: int. i = 0 && x = 0 - 1 && n > 0 && array_max n i (make_array n) x m && m < n

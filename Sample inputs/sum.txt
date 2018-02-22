@@ -1,0 +1,12 @@
+environment
+sum : int -> int -> bool
+
+program
+sum := \n: int. \r: int. (
+(n <= 0 && r = 0)
+||
+(n > 0 && (E x: int. sum (n - 1) x && r = n + x))
+);
+
+goal
+E x: int. E y:int. sum x y && x > y

@@ -1,0 +1,12 @@
+environment
+mcNinetyOne: int->int->bool
+
+program
+mcNinetyOne := \x: int. \r: int. (
+(x > 100 && r = x - 10)
+||
+(x <= 100 && (E y: int. (mcNinetyOne (x + 11) y) && mcNinetyOne y r))
+);
+
+goal
+E x: int. E y: int. x <= 102 && (y < 91 || y > 91) && mcNinetyOne x y

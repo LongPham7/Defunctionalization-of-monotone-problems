@@ -1,0 +1,14 @@
+environment
+max : (int->int->int->bool)->int->int->int->int->bool
+f : int->int->int->bool
+
+program
+max := \m: (int -> int -> int -> bool). \x: int. \y: int. \z: int. \r: int. (E p: int. m x y p && m p z r);
+f := \x: int. \y: int. \r: int. (
+(x < y && r = y)
+||
+(y <= x && r = x)
+);
+
+goal
+E x: int. E y: int. E z: int. E m: int. E n: int. max f x y z m && f x m n && (m < n || n < m)
