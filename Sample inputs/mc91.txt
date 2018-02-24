@@ -2,10 +2,12 @@ environment
 mcNinetyOne : int->int->bool
 
 program
+# The name of the top-level relational variable was originally mc91.
+# However, because digits cannot be in variable names, the variable name is replaced with 'mcNinetyOne'.
 mcNinetyOne := \x: int. \r: int. (
-(x > 100 && r = x-10)
-||
-(x <= 100 && (E y:int.(mcNinetyOne (x + 11) y) && mcNinetyOne y r))
+  (x > 100 && r = x-10)
+  ||
+  (x <= 100 && (E y:int.(mcNinetyOne (x + 11) y) && mcNinetyOne y r))
 );
 
 goal

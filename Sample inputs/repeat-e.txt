@@ -5,9 +5,9 @@ repeat : (int->int->bool)->int->int->int->bool
 program
 succ := \n: int. \r: int. r = n + 1;
 repeat := \f: (int -> int -> bool). \n: int. \s: int. \r: int. (
-(n <= 0 && r = s)
-||
-(n > 0 && (E i: int. E j: int. i = n - 1 && repeat f i s j && f j r ))
+  (n <= 0 && r = s)
+  ||
+  (n > 0 && (E i: int. E j: int. i = n - 1 && repeat f i s j && f j r ))
 );
 
 goal

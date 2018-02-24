@@ -6,7 +6,7 @@ neg : int->int->bool
 program
 g := \x: int. \r: int. x = r;
 twice := \f: (int -> int -> bool). \x: (int -> bool). \r: int. (
-E i: int. E j: int. x i && f i j && f j r
+  E i: int. E j: int. x i && f i j && f j r
 );
 neg := \x: int. \r: int. x + r = 0;
 

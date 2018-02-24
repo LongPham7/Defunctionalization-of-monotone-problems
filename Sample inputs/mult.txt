@@ -3,9 +3,9 @@ mult : int->int->int->bool
 
 program
 mult := \n: int. \m: int. \r: int. (
-((n <= 0 || m <= 0) && r = 0)
-||
-(n > 0 && m > 0 && (E x: int. E y:int. r = x + n && y = m - 1 && mult n y x))
+  ((n <= 0 || m <= 0) && r = 0)
+  ||
+  (n > 0 && m > 0 && (E x: int. E y:int. r = x + n && y = m - 1 && mult n y x))
 );
 
 goal
