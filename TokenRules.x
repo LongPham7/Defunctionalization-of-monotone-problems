@@ -8,7 +8,7 @@ import DataTypes
 $digit = 0-9
 $alpha = [a-zA-Z]
 
-@id = ([A-DF-Za-z][A-Za-z'_]*) | (E[A-Za-z'_]+)
+@id = ([A-DF-Za-z][A-Za-z0-9'_]*) | (E[A-Za-z0-9'_]+)
 
 tokens :-
 
