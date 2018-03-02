@@ -60,6 +60,31 @@ splitEvery :: Int -> [a] -> [[a]]
 splitEvery n xs = as : (splitEvery n bs)
   where (as, bs) = splitAt n xs
 
+decomposeLambdas :: Term -> (Term, Env)
+decomposeLambdas (LambdaSort v s1 b s2) = (t, (v, defunctionalizeSort s1):env)
+  where (t, env) = decomposeLambdas b
+decomposeLambdas t = (t, [])
+
+-- Renaming by a substitution
+
+rename :: Term -> [(String, String)] -> Term
+rename t@(VarSort v s) subst
+  | null matches  = t
+  | otherwise = VarSort (snd $ head matches) s
+  where matches = [(old, new) | (old, new) <- subst, v ==  old]
+rename (Add u v) subst = Add (rename u subst) (rename v subst)
+rename (Sub u v) subst = Sub (rename u subst) (rename v subst)
+rename (Sma u v) subst = Sma (rename u subst) (rename v subst)
+rename (SmaEq u v) subst = SmaEq (rename u subst) (rename v subst)
+rename (Eq u v) subst = Eq (rename u subst) (rename v subst)
+rename (Lar u v) subst = Lar (rename u subst) (rename v subst)
+rename (LarEq u v) subst = LarEq (rename u subst) (rename v subst)
+rename (And u v) subst = And (rename u subst) (rename v subst)
+rename (Or u v) subst = Or (rename u subst) (rename v subst)
+rename (AppSort u v s) subst = AppSort (rename u subst) (rename v subst) s
+rename (Exists v s b) subst = Exists v s (rename b subst)
+rename t subst = t
+
 -- Defunctionalization of sorts
 
 defunctionalizeSort :: Sort -> Sort

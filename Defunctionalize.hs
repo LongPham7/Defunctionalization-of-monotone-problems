@@ -55,11 +55,6 @@ defunctionalize var t = do
       exists = addExists conjunction vars'
       lambdas = LambdaSort varX ClosrSort (LambdaSort x_m s exists BoolSort) (Arrow s BoolSort)
   return ("IOMatch_" ++ show s, lambdas)
-  
-decomposeLambdas :: Term -> (Term, Env)
-decomposeLambdas (LambdaSort v s1 b s2) = (t, (v, defunctionalizeSort s1):env)
-  where (t, env) = decomposeLambdas b
-decomposeLambdas t = (t, [])
 
 -- Defunctionalization of terms with base sorts
 
