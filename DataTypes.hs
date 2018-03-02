@@ -105,9 +105,9 @@ showTerm (App u v) = showApp u v
 showTerm (AppSort u v s) = showApp u v
 showTerm (And u v) = "(" ++ showTerm u ++ " && " ++ showTerm v ++ ")"
 showTerm (Or u v) = "(" ++ showTerm u ++ " || " ++ showTerm v ++ ")"
-showTerm (Lambda v s b) = "\\" ++ v ++ ": " ++ show s ++ ". (" ++ showTerm b ++ ")"
-showTerm (LambdaSort v s1 b s2) = "\\" ++ v ++ ": " ++ show s1 ++ ". (" ++ showTerm b ++ ")"
-showTerm (Exists v s b) = "E " ++ v ++ ": " ++ show s ++ ". (" ++ showTerm b ++ ")"
+showTerm (Lambda v s b) = "\\" ++ v ++ ": " ++ show s ++ ". " ++ showTerm b
+showTerm (LambdaSort v s1 b s2) = "\\" ++ v ++ ": " ++ show s1 ++ ". " ++ showTerm b
+showTerm (Exists v s b) = "E " ++ v ++ ": " ++ show s ++ ". " ++ showTerm b
 showTerm (Sma u v) = showTerm u ++ " < " ++ showTerm v
 showTerm (SmaEq u v) = showTerm u ++ " <= " ++ showTerm v
 showTerm (Eq u v) = showTerm u ++ " = " ++ showTerm v
