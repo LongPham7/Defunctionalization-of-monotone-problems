@@ -151,13 +151,6 @@ defunctionalizeArrowApp u v (Arrow s1 s2) h
         sortApply = Arrow ClosrSort (Arrow (defunctionalizeSort s) (Arrow ClosrSort ClosrSort))
 defunctionalizeArrowApp u v s _ = error $ "The type of " ++ show (AppSort u v s) ++ " is first order."
 
--- Defunctionalization of sorts
-
-defunctionalizeSort :: Sort -> Sort
-defunctionalizeSort s
-  | isHigherOrderSort s = ClosrSort
-  | otherwise = s
-
 -- Testing
 
 fSort = Arrow IntSort (Arrow IntSort BoolSort)

@@ -60,5 +60,12 @@ splitEvery :: Int -> [a] -> [[a]]
 splitEvery n xs = as : (splitEvery n bs)
   where (as, bs) = splitAt n xs
 
+-- Defunctionalization of sorts
+
+defunctionalizeSort :: Sort -> Sort
+defunctionalizeSort s
+  | isHigherOrderSort s = ClosrSort
+  | otherwise = s
+
 -- Infinite seqence of random strings for fresh variables
 freshVars = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
