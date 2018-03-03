@@ -7,15 +7,59 @@ import HelperFunctions
 import Preprocess
 import Defunctionalize
 import Control.Monad.State
+import Options.Applicative
+import Data.Semigroup ((<>))
 
-main :: IO()
-main = do
-    s <- getContents
-    let 
-      tokens = alexScanTokens s
-      input = parse tokens
-      output = fst $ runState (produceOutput input) freshVars
-    print output
+-- Command line options
+
+data Input = FileInput FilePath | StdInput
+
+data Options = Options
+  { optInput :: Input
+  , optSMTformat :: Bool }
+
+fileInput :: Parser Input
+fileInput = FileInput <$> strOption
+  (  long "file"
+  <> short 'f'
+  <> metavar "FILENAME"
+  <> help "Set the input file to FILENAME" )
+
+stdInput :: Parser Input
+stdInput = flag' StdInput
+  (  long "stdin"
+  <> short 's'
+  <> help "Read from the standard input" )
+
+smtFormat :: Parser Bool
+smtFormat = switch 
+  (  long "Z3"
+  <> short 'z'
+  <> help "Output in the SMT-LIB format that is ready to be used by Z3")
+
+input :: Parser Input
+input = fileInput <|> stdInput
+
+parseOptions :: Parser Options
+parseOptions = Options <$> input <*> smtFormat
+
+withInfo :: Parser a -> String -> ParserInfo a
+withInfo opts desc = info (helper <*> opts) $ progDesc desc
+
+-- Main
+
+main :: IO ()
+main = run =<< execParser (parseOptions `withInfo` "Defunctionalization of monotone problems")
+
+run :: Options -> IO()
+run (Options StdInput False) = do
+  s <- getContents
+  let 
+    tokens = alexScanTokens s
+    input = parse tokens
+    output = fst $ runState (produceOutput input) freshVars
+  print output
+run _ = error "Other options are not supported."
 
 -- Combine preprocessing and defunctionalization
 
