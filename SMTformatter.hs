@@ -1,4 +1,4 @@
-module Formatter where
+module SMTformatter where
 
 import DataTypes
 import HelperFunctions
