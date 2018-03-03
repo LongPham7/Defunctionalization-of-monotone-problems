@@ -9,6 +9,7 @@ import Defunctionalize
 import Control.Monad.State
 import Options.Applicative
 import Data.Semigroup ((<>))
+import System.IO 
 
 -- Command line options
 
@@ -52,19 +53,27 @@ main :: IO ()
 main = run =<< execParser (parseOptions `withInfo` "Defunctionalization of monotone problems")
 
 run :: Options -> IO()
-run (Options StdInput False) = do
-  s <- getContents
+run (Options StdInput format) = do
+  input <- getContents
+  produceOutput input format
+run (Options (FileInput filename) format) = do
+  handle <- openFile filename ReadMode  
+  input <- hGetContents handle
+  produceOutput input format
+
+produceOutput :: String -> Bool -> IO()
+produceOutput input False = do
   let 
-    tokens = alexScanTokens s
-    input = parse tokens
-    output = fst $ runState (produceOutput input) freshVars
-  print output
-run _ = error "Other options are not supported."
+    tokens = alexScanTokens input
+    source = parse tokens
+    target = fst $ runState (produceTargetProblem source) freshVars
+  print target
+produceOutput s True = error "Other options are not supported."
 
 -- Combine preprocessing and defunctionalization
 
-produceOutput :: MonoProblem -> State [String] MonoProblem
-produceOutput (MProblem sortEnv eqs goal) = do
+produceTargetProblem :: MonoProblem -> State [String] MonoProblem
+produceTargetProblem (MProblem sortEnv eqs goal) = do
   (eqs', goal') <- preprocess eqs goal sortEnv
   let applys = recursiveCreateApplys eqs'
   iomatches <- recursiveDefunctionalize eqs'
