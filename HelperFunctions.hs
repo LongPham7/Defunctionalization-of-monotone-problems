@@ -7,10 +7,18 @@ isHigherOrderSort :: Sort -> Bool
 isHigherOrderSort (Arrow s1 s2) = True
 isHigherOrderSort _ = False
 
+-- This decomposes a sort into a list of sorts.
 decomposeSort :: Sort -> [Sort]
 decomposeSort IntSort = [IntSort]
 decomposeSort BoolSort = [BoolSort]
 decomposeSort (Arrow source target) = source : (decomposeSort target)
+
+-- This creates a composite/arrow sort from a list of sorts. This acts the
+-- inverse of decomposeSort. 
+concatSort :: [Sort] -> Sort
+concatSort [t] = t
+concatSort (t:ts) = Arrow t (concatSort ts)
+concatSort _ = error "No sort is given."
 
 calculateSort :: Term -> Sort
 calculateSort (TopVarSort v s) = s
@@ -65,11 +73,6 @@ decomposeLambdas :: Term -> (Term, Env)
 decomposeLambdas (LambdaSort v s1 b s2) = (t, (v, defunctionalizeSort s1):env)
   where (t, env) = decomposeLambdas b
 decomposeLambdas t = (t, [])
-
-typeConcat :: [Sort] -> Sort
-typeConcat [t] = t
-typeConcat (t:ts) = Arrow t (typeConcat ts)
-typeConcat _ = error "No sort is given."
 
 -- Renaming by a substitution
 

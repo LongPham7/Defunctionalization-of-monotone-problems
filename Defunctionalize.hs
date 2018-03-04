@@ -29,10 +29,12 @@ createApply var ts = ("Apply_" ++ show lastSort, secondLambda)
         firstLambda = LambdaSort "y" lastSort (LambdaSort "z" ClosrSort exists BoolSort) (Arrow ClosrSort BoolSort)
         secondLambda = LambdaSort "x" ClosrSort firstLambda (Arrow lastSort (Arrow ClosrSort BoolSort))
 
+-- This creates an appropriate sort for C^i_X.
 constSort :: [Sort] -> Sort
 constSort [] = ClosrSort
 constSort (t:ts) = Arrow (defunctionalizeSort t) (constSort ts)
 
+-- This returns a name string for C^i_X.
 constName :: String -> Int -> String
 constName var n = "C^" ++ show n ++ "_" ++ var
 
@@ -81,6 +83,7 @@ defunctionalizeBase (Or u v) = do
 defunctionalizeBase (AppSort u v s) = defunctionalizeBaseApp u v s
 defunctionalizeBase (Exists v s b) = defunctionalizeBase b >>= (\u -> return (Exists v s u))
 
+-- This defunctionalizes AppSort u v s, where s is a base sort. 
 defunctionalizeBaseApp :: Term -> Term -> Sort -> State [String] Term
 defunctionalizeBaseApp u v s@(Arrow s1 s2) = error $ "The type of " ++ show (AppSort u v s) ++ " is higher order."
 defunctionalizeBaseApp u v _
@@ -118,9 +121,10 @@ defunctionalizeArrow t@(TopVarSort v s) h
   | otherwise = error $ "The top-level relational variable " ++ show t ++ "has a base sort."
 defunctionalizeArrow (AppSort u v s) h = defunctionalizeArrowApp u v s h
 
+-- This defunctionalizes AppSort u v s, where s is an arrow sort. 
 defunctionalizeArrowApp :: Term -> Term -> Sort -> String -> State [String] Term
 defunctionalizeArrowApp u v (Arrow s1 s2) h
-  | isHigherOrderSort s1 = do
+  | isHigherOrderSort s = do
       (x:y:ys) <- get
       put ys
       let varX = "x_" ++ x
@@ -138,11 +142,12 @@ defunctionalizeArrowApp u v (Arrow s1 s2) h
       let varX = "x_" ++ x
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeBase v
-      let t3 = AppSort (TopVarSort ("Apply_" ++ show s1) sortApply) (VarSort varX ClosrSort) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
+      let t3 = AppSort (TopVarSort ("Apply_" ++ show s) sortApply) (VarSort varX ClosrSort) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
           t4 = AppSort t3 t2 (Arrow ClosrSort BoolSort)
           t5 = AppSort t4 (VarSort h ClosrSort) BoolSort
       return (Exists varX ClosrSort (And t1 t5))
-  where sortApply = Arrow ClosrSort (Arrow (defunctionalizeSort s1) (Arrow ClosrSort ClosrSort))
+  where s = calculateSort v
+        sortApply = Arrow ClosrSort (Arrow (defunctionalizeSort s) (Arrow ClosrSort ClosrSort))
 defunctionalizeArrowApp u v s _ = error $ "The type of " ++ show (AppSort u v s) ++ " is first order."
 
 -- Testing
