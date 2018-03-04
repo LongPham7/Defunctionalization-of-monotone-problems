@@ -92,7 +92,7 @@ elimAnonym t1@(LambdaSort v s1 b s2) = do
   (x:xs) <- get
   let freeVars = extractFreeVars t1
       newVar = "X_" ++ x
-      sortNewVar = typeConcat ((map snd freeVars) ++ [Arrow s2 s1])
+      sortNewVar = concatSort ((map snd freeVars) ++ [Arrow s2 s1])
       apps = addApps (VarSort newVar sortNewVar) freeVars
       lambdas = addLambdas t2 freeVars
   put xs

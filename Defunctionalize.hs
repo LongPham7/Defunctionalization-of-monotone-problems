@@ -9,8 +9,8 @@ import Control.Monad.State
 createApplys :: String -> Sort -> [Equation]
 createApplys var s = map (createApply var) cumulativeSorts
   where sorts = decomposeSort s
-        sorts' = take (length sorts - 1) sorts
-        cumulativeSorts = drop 1 $ scanl (\xs -> \x -> xs ++ [x]) [] sorts'
+        requiredLength = length sorts - 2
+        cumulativeSorts = map (\n -> take n sorts) [1..requiredLength]
 
 createApply :: String -> [Sort] -> Equation
 createApply var ts = ("Apply_" ++ show lastSort, secondLambda)
