@@ -70,7 +70,7 @@ splitEvery n xs = as : (splitEvery n bs)
   where (as, bs) = splitAt n xs
 
 decomposeLambdas :: Term -> (Term, Env)
-decomposeLambdas (LambdaSort v s1 b s2) = (t, (v, defunctionalizeSort s1):env)
+decomposeLambdas (LambdaSort v s1 b s2) = (t, (v, s1):env)
   where (t, env) = decomposeLambdas b
 decomposeLambdas t = (t, [])
 

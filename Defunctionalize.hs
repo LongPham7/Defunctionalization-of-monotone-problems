@@ -45,7 +45,8 @@ defunctionalize var t = do
   (x:xs) <- get
   put xs
   let varX = "x_" ++ x
-      (b, vars) = decomposeLambdas t
+      (b, env) = decomposeLambdas t
+      vars = map (\(v,s) -> (v, defunctionalizeSort s)) env
       vars' = init vars
       (x_m, s) = last vars
       arity = length vars

@@ -43,33 +43,59 @@ defineClosr var list = foldl appendClosr var list
 
 -- Definitions of top-level relational variables in the target monotone problem
 
-defineApplys :: (String, Sort) -> [Term] -> String
-defineApplys (var, sort) terms = result
-  where terms' = map (fst. decomposeLambdas) terms
-        definition = addOrs (map defineBody terms')
-        header = "(define-fun " ++ var ++ " "
-        sorts = decomposeSort sort
-        showSourceSort (v, s) = "(" ++ v ++ " " ++ showSMTBaseSort s ++ ")"
-        domainSorts = unwords (map showSourceSort (zip ["x", "y", "z"] sorts))
-        result = header ++ "(" ++ domainSorts ++ ") Bool\n" ++ definition ++ "\n)\n" 
+defineApply :: (String, Sort) -> [Term] -> State [String] String
+defineApply (var, sort) terms = do
+  (x:y:z:zs) <- get
+  put zs
+  let varX = "x_" ++ x
+      varY = "x_" ++ y
+      varZ = "x_" ++ z
+      header = "(declare-rel " ++ var ++ " "
+      sorts = init $ decomposeSort sort
+      domainSorts = "(" ++ (unwords $ map showSMTBaseSort sorts) ++ "))"
+      terms' = map (renameApply (varX, varY, varZ)) terms
+      env = zip [varX, varY, varZ] sorts
+      rules = map (\t -> defineRule t var env) terms'
+      varDeclaration = declareVariables (zip [varX, varY, varZ] sorts)
+      result = unlines ([header ++ domainSorts, varDeclaration] ++ rules)
+  return result
 
-defineIOMatches :: (String, Sort) -> [Term] -> State [String] String
-defineIOMatches (var, sort) terms = do
+defineIOMatch :: (String, Sort) -> [Term] -> State [String] String
+defineIOMatch (var, sort) terms = do
   (x:y:ys) <- get
   put ys
   let varX = "x_" ++ x
       varY = "x_" ++ y
-      terms' = map (renameIOMatches (varX, varY)) terms
-      definition = addOrs (map defineBody terms')
-      header = "(define-fun " ++ var ++ " "
-      sorts = decomposeSort sort
-      showSourceSort (v, s) = "(" ++ v ++ " " ++ showSMTBaseSort s ++ ")"
-      domainSorts = unwords (map showSourceSort (zip [varX, varY] sorts))
-      result = header ++ "(" ++ domainSorts ++ ") Bool\n" ++ definition ++ "\n)\n"
+      sorts = init $ decomposeSort sort
+      header = "(declare-rel " ++ var ++ " "
+      domainSorts = "(" ++ (unwords $ map showSMTBaseSort sorts) ++ "))"
+      varDeclaration = declareVariables (zip [varX, varY] sorts)
+      terms' = map (renameIOMatch (varX, varY)) terms
+      env = zip [varX, varY] sorts
+      rules = map (\t -> defineRule t var env) terms'
+      result = unlines ([header ++ domainSorts, varDeclaration] ++ rules)
   return result
 
-renameIOMatches :: (String, String) -> Term -> Term
-renameIOMatches (first, second) (LambdaSort v1 s1 (LambdaSort v2 s3 b s4) s2) = rename b [(v1, first), (v2, second)]
+declareVariables :: Env -> String
+declareVariables env = unlines $ map varDeclare env
+  where varDeclare (v, s) = "(declare-var " ++ v ++ " " ++ showSMTBaseSort s ++ ")"
+
+defineRule :: Term -> String -> Env -> String
+defineRule t var env = header ++ footer
+  where t' = defineBody t
+        header = "(rule (=> " ++ t' ++ " "
+        footer = "(" ++ unwords (var: (map fst env)) ++ ")))"
+
+-- This alpha-converts a definition of Apply. The outermost lambda abstractions
+-- are removed from the output. 
+renameApply :: (String, String, String) -> Term -> Term
+renameApply (first, second, third) (LambdaSort v1 s1 (LambdaSort v2 s3 (LambdaSort v3 s5 b s6) s4) s2) = result
+  where result = rename b [(v1, first), (v2, second), (v3, third)]
+
+-- This alpha-converts a definition of IOMatch. The outermost lambda
+-- abstractions are removed from the output. 
+renameIOMatch :: (String, String) -> Term -> Term
+renameIOMatch (first, second) (LambdaSort v1 s1 (LambdaSort v2 s3 b s4) s2) = rename b [(v1, first), (v2, second)]
 
 defineBody :: Term -> String
 defineBody (TopVarSort v s) = v
@@ -89,11 +115,11 @@ defineBody (AppSort u v s)
   | isHigherOrderSort s = defineBody u ++ " " ++ defineBody v
   | otherwise = "(" ++ defineBody u ++ " " ++ defineBody v ++ ")"
 defineBody (Exists v s b) = "(exists ((" ++ v ++ " " ++ showSMTBaseSort s ++ ")) " ++ defineBody b ++ ")"
-defineBody t = error (show t ++ " cannot be translated into SMT-LIB.")
+defineBody t = error (show t ++ " cannot be translated into the SMT-LIB2.")
 
 -- Helper functions
 
--- This displays a type constructor in the SMT-LIB format.
+-- This displays a type constructor in the SMT-LIB2 format.
 showSMTConstructor :: Sort -> String
 showSMTConstructor IntSort = "intCons"
 showSMTConstructor BoolSort = "boolCons"

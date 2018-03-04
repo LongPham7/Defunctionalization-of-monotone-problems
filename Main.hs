@@ -166,16 +166,23 @@ translateSMT sourceEnv (MProblem finalSortEnv finalEqs finalGoal) = do
       iomatches = groupEquations candidateSortEnvIOMacthes finalEqs
       declarationData = dataDeclaration (map fst sourceEnv)
       signature = defineSignature sourceEnv
-      applys' = concat (map (\((v,s), ts) -> defineApplys (v, s) ts) applys)
+  applys' <- recursiveDefineApplys applys
   iomatches' <- recursiveDefineIOMatches iomatches
   let goal' = "(assert " ++ defineBody finalGoal ++ ")\n"
       footer = goal' ++ "(check-sat)\n"
   return (declarationData ++ signature ++ applys' ++ iomatches' ++ footer)
 
+recursiveDefineApplys :: [((String, Sort), [Term])] -> State [String] String
+recursiveDefineApplys [] = return ""
+recursiveDefineApplys (((v, s), ts): ds) = do
+  def <- defineApply (v, s) ts
+  defs <- recursiveDefineApplys ds
+  return (def ++ defs)
+
 recursiveDefineIOMatches :: [((String, Sort), [Term])] -> State [String] String
 recursiveDefineIOMatches [] = return ""
 recursiveDefineIOMatches (((v, s), ts): ds) = do
-  def <- defineIOMatches (v, s) ts
+  def <- defineIOMatch (v, s) ts
   defs <- recursiveDefineIOMatches ds
   return (def ++ defs)
 

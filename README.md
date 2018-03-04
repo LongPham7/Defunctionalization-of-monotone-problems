@@ -49,7 +49,7 @@ To execute this executable file, run
 
 Here, the option `-f` allows the user to specify an input file name. If you want to use the standard input, use the option `-s`.
 
-Another option is `-z`, which displays a target monotone problem (i.e. a defunctionalized monotone problem) in the SMT-LIB2 format (possibly with extension) that is compatible with Z3. 
+Another option is `-z`, which displays a target monotone problem (i.e. a defunctionalized monotone problem) in the extended SMT-LIB2 format that is compatible with Z3. 
 
 If you need any help with command line options, use the `-h` options. 
 
