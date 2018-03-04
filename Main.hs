@@ -6,6 +6,7 @@ import DataTypes
 import HelperFunctions
 import Preprocess
 import Defunctionalize
+import SMTformatter
 import Control.Monad.State
 import Options.Applicative
 import Data.Semigroup ((<>))
@@ -68,7 +69,12 @@ produceOutput input False = do
     source = parse tokens
     target = fst $ runState (produceTargetProblem source) freshVars
   print target
-produceOutput s True = error "Other options are not supported."
+produceOutput input True = do
+  let 
+    tokens = alexScanTokens input
+    source = parse tokens
+    target = fst $ runState (produceTargetProblemSMT source) freshVars
+  putStr target
 
 -- Combine preprocessing and defunctionalization
 
@@ -83,10 +89,19 @@ produceTargetProblem (MProblem sortEnv eqs goal) = do
       finalSortEnv  = [(v, s) | (v, s) <- candidateSortEnv, v `elem` finalEnvVars]
   return (MProblem finalSortEnv finalEqs finalGoal)
 
+produceTargetProblemSMT :: MonoProblem -> State [String] String
+produceTargetProblemSMT s@(MProblem sortEnv eqs goal) = do
+  t <- produceTargetProblem s
+  translateSMT sortEnv t
+
 candidateSortEnv :: Env
-candidateSortEnv = iomatchEnv ++ applyEnv
-  where iomatchEnv = [("IOMatch_" ++ show s, iomatchSort s) | s <- [IntSort, BoolSort, ClosrSort]]
-        applyEnv = [("Apply_" ++ show s, applySort s) | s <- [IntSort, BoolSort, ClosrSort]]
+candidateSortEnv = candidateSortEnvApplys ++ candidateSortEnvIOMacthes
+
+candidateSortEnvApplys :: Env
+candidateSortEnvApplys = [("Apply_" ++ show s, applySort s) | s <- [IntSort, BoolSort, ClosrSort]]
+
+candidateSortEnvIOMacthes :: Env
+candidateSortEnvIOMacthes = [("IOMatch_" ++ show s, iomatchSort s) | s <- [IntSort, BoolSort, ClosrSort]]
 
 iomatchSort :: Sort -> Sort
 iomatchSort s = Arrow ClosrSort (Arrow s BoolSort)
@@ -142,3 +157,28 @@ recursiveDefunctionalize ((var, term): eqs) = do
   eq' <- defunctionalize var term
   eqs' <- recursiveDefunctionalize eqs
   return (eq': eqs')
+
+-- Translating target monotone problems into SMT-LIB
+
+translateSMT :: Env -> MonoProblem -> State [String] String
+translateSMT sourceEnv (MProblem finalSortEnv finalEqs finalGoal) = do
+  let applys = groupEquations candidateSortEnvApplys finalEqs
+      iomatches = groupEquations candidateSortEnvIOMacthes finalEqs
+      declarationData = dataDeclaration (map fst sourceEnv)
+      signature = defineSignature sourceEnv
+      applys' = concat (map (\((v,s), ts) -> defineApplys (v, s) ts) applys)
+  iomatches' <- recursiveDefineIOMatches iomatches
+  let goal' = "(assert " ++ defineBody finalGoal ++ ")\n"
+      footer = goal' ++ "(check-sat)\n"
+  return (declarationData ++ signature ++ applys' ++ iomatches' ++ footer)
+
+recursiveDefineIOMatches :: [((String, Sort), [Term])] -> State [String] String
+recursiveDefineIOMatches [] = return ""
+recursiveDefineIOMatches (((v, s), ts): ds) = do
+  def <- defineIOMatches (v, s) ts
+  defs <- recursiveDefineIOMatches ds
+  return (def ++ defs)
+
+groupEquations :: Env -> [Equation] -> [((String, Sort), [Term])]
+groupEquations env eqs = filter (not. null. snd) (map (group eqs) env)
+  where group list (var, sort) = ((var, sort), [t | (v, t) <- list, var == v])

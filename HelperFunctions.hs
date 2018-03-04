@@ -4,9 +4,8 @@ import DataTypes
 import System.Random
 
 isHigherOrderSort :: Sort -> Bool
-isHigherOrderSort s
-  | s == IntSort || s == BoolSort = False
-  | otherwise = True
+isHigherOrderSort (Arrow s1 s2) = True
+isHigherOrderSort _ = False
 
 decomposeSort :: Sort -> [Sort]
 decomposeSort IntSort = [IntSort]
@@ -39,11 +38,13 @@ sourceTargetType s = error $ show s ++ " is not an arrow sort."
 typeOf :: String -> Env -> Sort
 typeOf var env = head [s | (v,s) <- env, v ==  var]
 
-addApps :: Term -> [String] -> Term
+addApps :: Term -> Env -> Term
 addApps = foldl addApp
 
-addApp :: Term -> String -> Term
-addApp t v = AppSort t (Var v) target
+addApp :: Term -> (String, Sort) -> Term
+addApp t (v, s) 
+  | s == source = AppSort t (VarSort v s) target
+  | otherwise = error "The source type is wrong."
   where (source, target) = sourceTargetType (calculateSort t)
 
 addLambdas :: Term -> Env -> Term
@@ -64,6 +65,11 @@ decomposeLambdas :: Term -> (Term, Env)
 decomposeLambdas (LambdaSort v s1 b s2) = (t, (v, defunctionalizeSort s1):env)
   where (t, env) = decomposeLambdas b
 decomposeLambdas t = (t, [])
+
+typeConcat :: [Sort] -> Sort
+typeConcat [t] = t
+typeConcat (t:ts) = Arrow t (typeConcat ts)
+typeConcat _ = error "No sort is given."
 
 -- Renaming by a substitution
 

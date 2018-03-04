@@ -20,10 +20,10 @@ createApply var ts = ("Apply_" ++ show lastSort, secondLambda)
         lastSort = last sorts
         cSortFirst = constSort $ init sorts
         constFirst = Const (constName var(arity - 1)) cSortFirst
-        appsFirst = addApps constFirst vars
+        appsFirst = addApps constFirst (zip vars sorts)
         cSortSecond = constSort sorts
         constSecond = Const (constName var arity) cSortSecond
-        appsSecond = addApps constSecond (vars ++ ["y"])
+        appsSecond = addApps constSecond ((zip vars sorts) ++ [("y", lastSort)])
         conjunction = And (Eq (VarSort "x" ClosrSort) appsFirst) (Eq (VarSort "z" ClosrSort) appsSecond)
         exists = addExists conjunction (zip vars sorts)
         firstLambda = LambdaSort "y" lastSort (LambdaSort "z" ClosrSort exists BoolSort) (Arrow ClosrSort BoolSort)
@@ -50,8 +50,8 @@ defunctionalize var t = do
   b' <- defunctionalizeBase b
   let cSort = constSort $ map snd vars'
       const = Const (constName var (arity - 1)) cSort
-      apps = addApps const (map fst vars')
-      conjunction = And (Eq (Var varX) apps) b'
+      apps = addApps const vars'
+      conjunction = And (Eq (VarSort varX ClosrSort) apps) b'
       exists = addExists conjunction vars'
       lambdas = LambdaSort varX ClosrSort (LambdaSort x_m s exists BoolSort) (Arrow s BoolSort)
   return ("IOMatch_" ++ show s, lambdas)
@@ -91,8 +91,8 @@ defunctionalizeBaseApp u v _
           varY = "x_" ++ y
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeArrow v varY
-      let t3 = AppSort (TopVarSort ("IOMatch_" ++ show ClosrSort) sortIOMatch) (Var varX) (Arrow ClosrSort BoolSort)
-          t4 = AppSort t3 (Var varY) BoolSort
+      let t3 = AppSort (TopVarSort ("IOMatch_" ++ show ClosrSort) sortIOMatch) (VarSort varX ClosrSort) (Arrow ClosrSort BoolSort)
+          t4 = AppSort t3 (VarSort varY ClosrSort) BoolSort
           t5 = Exists varY ClosrSort (And t2 t4)
       return (Exists varX ClosrSort (And t1 t5))
   | otherwise = do
@@ -101,7 +101,7 @@ defunctionalizeBaseApp u v _
       let varX = "x_" ++ x
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeBase v
-      let t3 = AppSort (TopVarSort ("IOMatch_" ++ show sort) sortIOMatch) (Var varX) (Arrow sort BoolSort)
+      let t3 = AppSort (TopVarSort ("IOMatch_" ++ show sort) sortIOMatch) (VarSort varX ClosrSort) (Arrow sort BoolSort)
           t4 = AppSort t3 t2 BoolSort
       return (Exists varX ClosrSort (And t1 t4))
   where sort = calculateSort v
@@ -120,16 +120,16 @@ defunctionalizeArrow (AppSort u v s) h = defunctionalizeArrowApp u v s h
 
 defunctionalizeArrowApp :: Term -> Term -> Sort -> String -> State [String] Term
 defunctionalizeArrowApp u v (Arrow s1 s2) h
-  | isHigherOrderSort s = do
+  | isHigherOrderSort s1 = do
       (x:y:ys) <- get
       put ys
       let varX = "x_" ++ x
           varY = "x_" ++ y
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeArrow v varY
-      let t3 = AppSort (TopVarSort ("Apply_" ++ show ClosrSort) sortApply) (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
-          t4 = AppSort t3 (Var varY) (Arrow ClosrSort BoolSort)
-          t5 = AppSort t4 (Var h) BoolSort
+      let t3 = AppSort (TopVarSort ("Apply_" ++ show ClosrSort) sortApply) (VarSort varX ClosrSort) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
+          t4 = AppSort t3 (VarSort varY ClosrSort) (Arrow ClosrSort BoolSort)
+          t5 = AppSort t4 (VarSort h ClosrSort) BoolSort
           t6 = Exists varY ClosrSort (And t2 t5)
       return (Exists varX ClosrSort (And t1 t6))
   | otherwise = do
@@ -138,12 +138,11 @@ defunctionalizeArrowApp u v (Arrow s1 s2) h
       let varX = "x_" ++ x
       t1 <- defunctionalizeArrow u varX
       t2 <- defunctionalizeBase v
-      let t3 = AppSort (TopVarSort ("Apply_" ++ show s) sortApply) (Var varX) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
+      let t3 = AppSort (TopVarSort ("Apply_" ++ show s1) sortApply) (VarSort varX ClosrSort) (Arrow ClosrSort (Arrow ClosrSort BoolSort))
           t4 = AppSort t3 t2 (Arrow ClosrSort BoolSort)
-          t5 = AppSort t4 (Var h) BoolSort
+          t5 = AppSort t4 (VarSort h ClosrSort) BoolSort
       return (Exists varX ClosrSort (And t1 t5))
-  where s = calculateSort v
-        sortApply = Arrow ClosrSort (Arrow (defunctionalizeSort s) (Arrow ClosrSort ClosrSort))
+  where sortApply = Arrow ClosrSort (Arrow (defunctionalizeSort s1) (Arrow ClosrSort ClosrSort))
 defunctionalizeArrowApp u v s _ = error $ "The type of " ++ show (AppSort u v s) ++ " is first order."
 
 -- Testing

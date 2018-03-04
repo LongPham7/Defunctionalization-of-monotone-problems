@@ -73,7 +73,7 @@ etaExpansion s t = do
     sorts = init (decomposeSort s)
     (as, bs) = splitAt (length sorts) xs
     vars = map (\s -> "x_" ++ s) as
-    apps = addApps t vars
+    apps = addApps t (zip vars sorts)
     lambdas = addLambdas apps (zip vars sorts)
   put bs
   return lambdas
@@ -92,7 +92,8 @@ elimAnonym t1@(LambdaSort v s1 b s2) = do
   (x:xs) <- get
   let freeVars = extractFreeVars t1
       newVar = "X_" ++ x
-      apps = addApps (Var newVar) (map fst freeVars)
+      sortNewVar = typeConcat ((map snd freeVars) ++ [Arrow s2 s1])
+      apps = addApps (VarSort newVar sortNewVar) freeVars
       lambdas = addLambdas t2 freeVars
   put xs
   return (apps, (newVar, lambdas): bs)

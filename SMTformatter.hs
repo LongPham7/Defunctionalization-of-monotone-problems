@@ -51,7 +51,7 @@ defineApplys (var, sort) terms = result
         sorts = decomposeSort sort
         showSourceSort (v, s) = "(" ++ v ++ " " ++ showSMTBaseSort s ++ ")"
         domainSorts = unwords (map showSourceSort (zip ["x", "y", "z"] sorts))
-        result = header ++ "(" ++ domainSorts ++ ") Closr\n" ++ definition ++ "\n)\n" 
+        result = header ++ "(" ++ domainSorts ++ ") Bool\n" ++ definition ++ "\n)\n" 
 
 defineIOMatches :: (String, Sort) -> [Term] -> State [String] String
 defineIOMatches (var, sort) terms = do
