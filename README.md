@@ -37,12 +37,21 @@ First run
 
 The output Haskell code is placed in Tokeniser.hs and Parser.hs. The names of these files must be exact. 
 
-Then run the main Haskell module:
+To compile the Haskell source code, run
 
-    ghc Main.hs
-    Get-content SampleInput.txt | .\Main
+    ghc -O Main.hs
 
-The second line feeds an input file, SampleInput.txt, into the standard input and then pipelines it to the executable of the Haskell program. `SampleInput.txt` in `Get-content SampleInput.txt | .\Main` can be replaced with the name of your own input file. Note that `Get-content SampleInput.txt | .\Main` is specific to Microsoft Windows Powershell. 
+The command line option `-O` enables compilation optimisation. An executable file is generated and placed in the root directory. 
+
+To execute this executable file, run
+
+    .\Main -f SampleInput.txt
+
+Here, the option `-f` allows the user to specify an input file name. If you want to use the standard input, use the option `-s`.
+
+Another option is `-z`, which displays a target monotone problem (i.e. a defunctionalized monotone problem) in the SMT-LIB2 format (possibly with extension) that is compatible with Z3. 
+
+If you need any help with command line options, use the `-h` options. 
 
 ## Sample inputs
 
