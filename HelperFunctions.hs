@@ -101,5 +101,5 @@ defunctionalizeSort s
   | isHigherOrderSort s = ClosrSort
   | otherwise = s
 
--- Infinite seqence of random strings for fresh variables
-freshVars = splitEvery 3 (randomRs ('a', 'z') (mkStdGen 11) :: String)
+-- Infinite seqence of strings for fresh variables
+freshVars = map show [1..]

@@ -14,11 +14,16 @@ import System.IO
 
 -- Command line options
 
+-- The input source is either a file or the standard input. 
 data Input = FileInput FilePath | StdInput
+
+-- The output format is (1) the monotone problems's format, (2) the extended
+-- SMT-LIB2 format, or (3) the pure SMT-LIB2 format. 
+data Format = MonoFormat | ExtendedSMT | PureSMT
 
 data Options = Options
   { optInput :: Input
-  , optSMTformat :: Bool }
+  , optOutputFormat :: Format }
 
 fileInput :: Parser Input
 fileInput = FileInput <$> strOption
@@ -33,17 +38,32 @@ stdInput = flag' StdInput
   <> short 's'
   <> help "Read from the standard input" )
 
-smtFormat :: Parser Bool
-smtFormat = switch 
-  (  long "Z3"
-  <> short 'z'
-  <> help "Output in the SMT-LIB format that is ready to be used by Z3")
+monotoneFormat :: Parser Format
+monotoneFormat = flag' MonoFormat
+  (  long "monotone"
+  <> short 'm'
+  <> help "Output in the monotone problems' format")
 
-input :: Parser Input
-input = fileInput <|> stdInput
+extendedFormat :: Parser Format
+extendedFormat = flag' ExtendedSMT
+  (  long "extended"
+  <> short 'e'
+  <> help "Output in the extended SMT-LIB2 format")
+
+pureFormat :: Parser Format
+pureFormat = flag' PureSMT
+  (  long "pure"
+  <> short 'p'
+  <> help "Output in the pure SMT-LIB2 format")
+
+inputSource :: Parser Input
+inputSource = fileInput <|> stdInput
+
+outputFormat :: Parser Format
+outputFormat = monotoneFormat <|> extendedFormat <|> pureFormat
 
 parseOptions :: Parser Options
-parseOptions = Options <$> input <*> smtFormat
+parseOptions = Options <$> inputSource <*> outputFormat
 
 withInfo :: Parser a -> String -> ParserInfo a
 withInfo opts desc = info (helper <*> opts) $ progDesc desc
@@ -62,18 +82,24 @@ run (Options (FileInput filename) format) = do
   input <- hGetContents handle
   produceOutput input format
 
-produceOutput :: String -> Bool -> IO()
-produceOutput input False = do
+produceOutput :: String -> Format -> IO()
+produceOutput input MonoFormat = do
   let 
     tokens = alexScanTokens input
     source = parse tokens
     target = fst $ runState (produceTargetProblem source) freshVars
   print target
-produceOutput input True = do
+produceOutput input ExtendedSMT = do
   let 
     tokens = alexScanTokens input
     source = parse tokens
-    target = fst $ runState (produceTargetProblemSMT source) freshVars
+    target = fst $ runState (produceTargetProblemSMTExt source) freshVars
+  putStr target
+produceOutput input PureSMT = do
+  let 
+    tokens = alexScanTokens input
+    source = parse tokens
+    target = fst $ runState (produceTargetProblemSMTPure source) freshVars
   putStr target
 
 -- Combine preprocessing and defunctionalization
@@ -89,10 +115,15 @@ produceTargetProblem (MProblem sortEnv eqs goal) = do
       finalSortEnv  = [(v, s) | (v, s) <- candidateSortEnv, v `elem` finalEnvVars]
   return (MProblem finalSortEnv finalEqs finalGoal)
 
-produceTargetProblemSMT :: MonoProblem -> State [String] String
-produceTargetProblemSMT s@(MProblem sortEnv eqs goal) = do
+produceTargetProblemSMTExt :: MonoProblem -> State [String] String
+produceTargetProblemSMTExt s@(MProblem sortEnv eqs goal) = do
   t <- produceTargetProblem s
-  translateSMT sortEnv t
+  translateSMTExt sortEnv t
+
+produceTargetProblemSMTPure :: MonoProblem -> State [String] String
+produceTargetProblemSMTPure s@(MProblem sortEnv eqs goal) = do
+  t <- produceTargetProblem s
+  return (translateSMTPure sortEnv t)
 
 candidateSortEnv :: Env
 candidateSortEnv = candidateSortEnvApplys ++ candidateSortEnvIOMacthes
@@ -158,33 +189,50 @@ recursiveDefunctionalize ((var, term): eqs) = do
   eqs' <- recursiveDefunctionalize eqs
   return (eq': eqs')
 
--- Translating target monotone problems into SMT-LIB
+-- Translating target monotone problems into the extended SMT-LIB2 format
 
-translateSMT :: Env -> MonoProblem -> State [String] String
-translateSMT sourceEnv (MProblem finalSortEnv finalEqs finalGoal) = do
+translateSMTExt :: Env -> MonoProblem -> State [String] String
+translateSMTExt sourceEnv (MProblem finalSortEnv finalEqs finalGoal) = do
   let applys = groupEquations candidateSortEnvApplys finalEqs
       iomatches = groupEquations candidateSortEnvIOMacthes finalEqs
       declarationData = dataDeclaration (map fst sourceEnv)
       signature = defineSignature sourceEnv
   applys' <- recursiveDefineApplys applys
   iomatches' <- recursiveDefineIOMatches iomatches
-  let goal' = "(assert " ++ defineBody finalGoal ++ ")\n"
+  let -- Goal needs to be negated.
+      goal' = "(assert (not " ++ defineBody finalGoal ++ "))\n"
       footer = goal' ++ "(check-sat)\n"
   return (declarationData ++ signature ++ applys' ++ iomatches' ++ footer)
 
 recursiveDefineApplys :: [((String, Sort), [Term])] -> State [String] String
 recursiveDefineApplys [] = return ""
 recursiveDefineApplys (((v, s), ts): ds) = do
-  def <- defineApply (v, s) ts
+  def <- defineApplyExt (v, s) ts
   defs <- recursiveDefineApplys ds
   return (def ++ defs)
 
 recursiveDefineIOMatches :: [((String, Sort), [Term])] -> State [String] String
 recursiveDefineIOMatches [] = return ""
 recursiveDefineIOMatches (((v, s), ts): ds) = do
-  def <- defineIOMatch (v, s) ts
+  def <- defineIOMatchExt (v, s) ts
   defs <- recursiveDefineIOMatches ds
   return (def ++ defs)
+
+-- Translating target monotone problems into the pure SMT-LIB2 format
+
+translateSMTPure :: Env -> MonoProblem -> String
+translateSMTPure sourceEnv (MProblem finalSortEnv finalEqs finalGoal) = 
+  let setLogic = "(set-logic HORN)\n"
+      applys = groupEquations candidateSortEnvApplys finalEqs
+      iomatches = groupEquations candidateSortEnvIOMacthes finalEqs
+      declarationData = dataDeclaration (map fst sourceEnv)
+      signature = defineSignature sourceEnv
+      applys' = unlines $ map (\(v,ts) -> defineRelationalVariablePure v ts) applys
+      iomatches' = unlines $ map (\(v,ts) -> defineRelationalVariablePure v ts) iomatches
+      -- Goal needs to be negated. 
+      goal' = "(assert (not " ++ defineBody finalGoal ++ "))\n"
+      footer = goal' ++ "(check-sat)\n"
+  in (setLogic ++ declarationData ++ signature ++ applys' ++ iomatches' ++ footer)
 
 groupEquations :: Env -> [Equation] -> [((String, Sort), [Term])]
 groupEquations env eqs = filter (not. null. snd) (map (group eqs) env)

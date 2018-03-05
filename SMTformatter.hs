@@ -41,10 +41,10 @@ defineClosr :: String -> [(Sort, Int)] -> String
 defineClosr var list = foldl appendClosr var list
   where appendClosr accum (s, n) = "(" ++ showSMTConstructor s ++ " x_" ++ show n ++ " " ++ accum ++ ")"
 
--- Definitions of top-level relational variables in the target monotone problem
+-- Definitions of top-level relational variables in the extended SMT-LIB2 format
 
-defineApply :: (String, Sort) -> [Term] -> State [String] String
-defineApply (var, sort) terms = do
+defineApplyExt :: (String, Sort) -> [Term] -> State [String] String
+defineApplyExt (var, sort) terms = do
   (x:y:z:zs) <- get
   put zs
   let varX = "x_" ++ x
@@ -55,13 +55,13 @@ defineApply (var, sort) terms = do
       domainSorts = "(" ++ (unwords $ map showSMTBaseSort sorts) ++ "))"
       terms' = map (renameApply (varX, varY, varZ)) terms
       env = zip [varX, varY, varZ] sorts
-      rules = map (\t -> defineRule t var env) terms'
+      rules = map (\t -> defineRuleExt t var env) terms'
       varDeclaration = declareVariables (zip [varX, varY, varZ] sorts)
       result = unlines ([header ++ domainSorts, varDeclaration] ++ rules)
   return result
 
-defineIOMatch :: (String, Sort) -> [Term] -> State [String] String
-defineIOMatch (var, sort) terms = do
+defineIOMatchExt :: (String, Sort) -> [Term] -> State [String] String
+defineIOMatchExt (var, sort) terms = do
   (x:y:ys) <- get
   put ys
   let varX = "x_" ++ x
@@ -72,7 +72,7 @@ defineIOMatch (var, sort) terms = do
       varDeclaration = declareVariables (zip [varX, varY] sorts)
       terms' = map (renameIOMatch (varX, varY)) terms
       env = zip [varX, varY] sorts
-      rules = map (\t -> defineRule t var env) terms'
+      rules = map (\t -> defineRuleExt t var env) terms'
       result = unlines ([header ++ domainSorts, varDeclaration] ++ rules)
   return result
 
@@ -80,8 +80,8 @@ declareVariables :: Env -> String
 declareVariables env = unlines $ map varDeclare env
   where varDeclare (v, s) = "(declare-var " ++ v ++ " " ++ showSMTBaseSort s ++ ")"
 
-defineRule :: Term -> String -> Env -> String
-defineRule t var env = header ++ footer
+defineRuleExt :: Term -> String -> Env -> String
+defineRuleExt t var env = header ++ footer
   where t' = defineBody t
         header = "(rule (=> " ++ t' ++ " "
         footer = "(" ++ unwords (var: (map fst env)) ++ ")))"
@@ -96,6 +96,28 @@ renameApply (first, second, third) (LambdaSort v1 s1 (LambdaSort v2 s3 (LambdaSo
 -- abstractions are removed from the output. 
 renameIOMatch :: (String, String) -> Term -> Term
 renameIOMatch (first, second) (LambdaSort v1 s1 (LambdaSort v2 s3 b s4) s2) = rename b [(v1, first), (v2, second)]
+
+-- Definitions of top-level relational variables in the pure SMT-LIB2 format
+
+-- This can be used for both Applys and IOMatches. 
+defineRelationalVariablePure :: (String, Sort) -> [Term] -> String
+defineRelationalVariablePure (var, sort) terms = result
+  where sorts = decomposeSort sort
+        header = "(declare-fun " ++ var ++ " "
+        domainSorts = "(" ++ (unwords $ map showSMTBaseSort (init sorts)) ++ ") "
+        targetSort = showSMTBaseSort (last sorts) ++ ")"
+        terms' = map (\t -> defineAssert var t) terms
+        result = unlines ((header ++ domainSorts ++ targetSort): terms')
+
+defineAssert :: String -> Term -> String
+defineAssert var term = header ++ domainSorts ++ definition
+  where (term', env) = decomposeLambdas term
+        header = "(assert (forall ("
+        domainSorts = unwords $ map (\(v,s) -> "(" ++ v ++ " " ++ showSMTBaseSort s ++ ")") env
+        definition = ") (=> " ++ defineBody term' ++ " (" ++ var ++ " " ++ (unwords $ map fst env) ++ "))))"
+
+-- Definitions of goal terms free of lambda abstractions in the extended and
+-- pure SMT-LIB2 format
 
 defineBody :: Term -> String
 defineBody (TopVarSort v s) = v

@@ -37,7 +37,7 @@ First run
     alex -o Tokeniser.hs TokenRules.x
     happy -o Parser.hs Grammar.y
 
-The output Haskell code is placed in Tokeniser.hs and Parser.hs. The names of these files must be exact. 
+The output Haskell code is placed in Tokeniser.hs and Parser.hs. The names of these files must be exact since they are imported to other Haskell modules. 
 
 To compile the Haskell source code, run
 
@@ -47,13 +47,15 @@ The command line option `-O` enables compilation optimisation. An executable fil
 
 To execute this executable file, run
 
-    .\Main -f SampleInput.txt
+    .\Main -f SampleInput.txt -m
 
-Here, the option `-f` allows the user to specify an input file name. If you want to use the standard input, use the option `-s`.
+Here, `-f` allows the user to specify an input file name. The `-m` flag sets the output format to the same one as the input format. 
 
-Another option is `-z`, which displays a target monotone problem (i.e. a defunctionalized monotone problem) in the extended SMT-LIB2 format that is compatible with Z3. 
+With respect to options for the output format, two more flags are supported: `-p` refers to the pure SMT-LIB2 format, and `-e` refers to the extended SMT-LIB2 format for Z3. 
 
 If you need any help with command line options, use the `-h` options. 
+
+**Warning**: Z3 supports both the extended and pure SMT-LIB2 formats. However, at the moment, only the output produced by `-p` yields a correct result after being fed into Z3. Although the output of `-e` is processed by Z3 without any error message, Z3 does not produce correct results. This is likely due to my insufficient understanding of the extended format.
 
 ## Sample inputs
 
