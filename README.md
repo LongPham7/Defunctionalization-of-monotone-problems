@@ -19,15 +19,17 @@ For more information about verification of monotone problems, please refer to *H
 ## Run
 
 ### Installation
-First, install a basic Haskell platform that comes with GHC, Cabal, Stack, and the basic Haskell packages. Then install the packages alex (for lexer generation) and happy (for parser generation) by
+First, install a basic Haskell platform that comes with GHC, Cabal, Stack, and the basic Haskell packages. Then install the packages alex (for lexer generation), happy (for parser generation), and optparse-applicative (for command line options) by
 
     cabal install alex
     cabal install happy
+    cabal install optparse-applicative
 
 or
 
     stack install alex
     stack install happy
+    stack install optparse-applicative
 
 ### Execution
 First run 
