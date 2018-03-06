@@ -56,8 +56,8 @@ defineApplyExt (var, sort) terms = do
       terms' = map (renameApply (varX, varY, varZ)) terms
       env = zip [varX, varY, varZ] sorts
       rules = map (\t -> defineRuleExt t var env) terms'
-      varDeclaration = declareVariables (zip [varX, varY, varZ] sorts)
-      result = unlines ([header ++ domainSorts, varDeclaration] ++ rules)
+      varDeclarations = map declareVariable (zip [varX, varY, varZ] sorts)
+      result = unlines (((header ++ domainSorts): varDeclarations) ++ rules)
   return result
 
 defineIOMatchExt :: (String, Sort) -> [Term] -> State [String] String
@@ -69,16 +69,15 @@ defineIOMatchExt (var, sort) terms = do
       sorts = init $ decomposeSort sort
       header = "(declare-rel " ++ var ++ " "
       domainSorts = "(" ++ (unwords $ map showSMTBaseSort sorts) ++ "))"
-      varDeclaration = declareVariables (zip [varX, varY] sorts)
+      varDeclarations = map declareVariable (zip [varX, varY] sorts)
       terms' = map (renameIOMatch (varX, varY)) terms
       env = zip [varX, varY] sorts
       rules = map (\t -> defineRuleExt t var env) terms'
-      result = unlines ([header ++ domainSorts, varDeclaration] ++ rules)
+      result = unlines (((header ++ domainSorts): varDeclarations) ++ rules)
   return result
 
-declareVariables :: Env -> String
-declareVariables env = unlines $ map varDeclare env
-  where varDeclare (v, s) = "(declare-var " ++ v ++ " " ++ showSMTBaseSort s ++ ")"
+declareVariable :: (String, Sort) -> String
+declareVariable (v, s) = "(declare-var " ++ v ++ " " ++ showSMTBaseSort s ++ ")"
 
 defineRuleExt :: Term -> String -> Env -> String
 defineRuleExt t var env = header ++ footer
@@ -154,7 +153,3 @@ showSMTBaseSort IntSort = "Int"
 showSMTBaseSort BoolSort = "Bool"
 showSMTBaseSort ClosrSort = "Closr"
 showSMTBaseSort _ = error "Only base sorts are accepted."
-
-addOrs :: [String] -> String
-addOrs = foldl1 addOr
-  where addOr str1 str2 = "(or " ++ str1 ++ "\n" ++ str2 ++ ")"

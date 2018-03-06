@@ -30,7 +30,7 @@ fileInput = FileInput <$> strOption
   (  long "file"
   <> short 'f'
   <> metavar "FILENAME"
-  <> help "Set the input file to FILENAME" )
+  <> help "Read from FILENAME" )
 
 stdInput :: Parser Input
 stdInput = flag' StdInput

@@ -1,7 +1,6 @@
 module HelperFunctions where
 
 import DataTypes
-import System.Random
 
 isHigherOrderSort :: Sort -> Bool
 isHigherOrderSort (Arrow s1 s2) = True
