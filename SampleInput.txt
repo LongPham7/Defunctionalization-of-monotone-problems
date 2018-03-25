@@ -2,7 +2,7 @@
 
 environment
 add: int -> int -> int -> bool
-twice: (int -> int) -> int -> int -> bool
+twice: (int -> int -> bool) -> int -> int -> bool
 
 program
 add := \x: int. \y: int. \z:int. x + y = z;
