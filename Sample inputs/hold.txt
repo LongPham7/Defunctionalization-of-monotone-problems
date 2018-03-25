@@ -1,0 +1,12 @@
+# This is the example from Section 5.3 of the paper Higher-Order Constrained
+# Horn Clauses and Refinement Types. 
+environment
+Leq: int -> int -> bool
+Holds: (int -> bool) -> int -> bool
+
+program
+Leq := \i: int. \j: int. i <= j;
+Holds := \p: (int -> bool). \n: int. p n;
+
+goal
+E i: int. Holds (Leq i) (i - 1)
