@@ -125,8 +125,8 @@ extractFreeVars (LarEq u v) = extractFreeVars u ++ (extractFreeVars v)
 extractFreeVars (And u v)= extractFreeVars u ++ (extractFreeVars v)
 extractFreeVars (Or u v)= extractFreeVars u ++ (extractFreeVars v)
 extractFreeVars (AppSort u v s)= extractFreeVars u ++ (extractFreeVars v)
-extractFreeVars (Exists v s b) = extractFreeVars b
-extractFreeVars (LambdaSort v s1 b s2) = extractFreeVars b
+extractFreeVars (Exists v s b) = filter (\(var,s) -> var /= v) (extractFreeVars b)
+extractFreeVars (LambdaSort v s1 b s2) = filter (\(var, s) -> var /= v) (extractFreeVars b)
 
 -- Testing
 
