@@ -2,7 +2,7 @@
 
 This is a Haskell program that takes in the specification of a monotone logic program safety problem (often abbreviated as a monotone problem) and produces the result of defunctionalizing the input problem. For simplicity, the constraint language is restricted to the language of integers with addition and subtraction. 
 
-A web interface is available [here](http://mjolnir.cs.ox.ac.uk/dfhohc/).
+A web interface is available [here](http://mjolnir.cs.ox.ac.uk/dfhochc/).
 
 ## Background
 
