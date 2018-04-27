@@ -129,7 +129,7 @@ defineBody (Sma u v) = "(< " ++ defineBody u ++ " " ++ defineBody v ++ ")"
 defineBody (SmaEq u v) = "(<= " ++ defineBody u ++ " " ++ defineBody v ++ ")"
 defineBody (Eq u v) = "(= " ++ defineBody u ++ " " ++ defineBody v ++ ")"
 defineBody (Lar u v) = "(> " ++ defineBody u ++ " " ++ defineBody v ++ ")"
-defineBody (LarEq u v) = "(> " ++ defineBody u ++ " " ++ defineBody v ++ ")"
+defineBody (LarEq u v) = "(>= " ++ defineBody u ++ " " ++ defineBody v ++ ")"
 defineBody (And u v) = "(and " ++ defineBody u ++ " " ++ defineBody v ++ ")"
 defineBody (Or u v) = "(or " ++ defineBody u ++ " " ++ defineBody v ++ ")"
 defineBody (AppSort u v s)

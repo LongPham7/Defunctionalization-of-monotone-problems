@@ -32,8 +32,8 @@ import DataTypes
   '<'          {TokenSmaller}
   '<='         {TokenSmallerEq}
   '='          {TokenEq}
-  '>='         {TokenLarger}
-  '>'          {TokenLargerEq}
+  '>='         {TokenLargerEq}
+  '>'          {TokenLarger}
   int          {TokenNum $$}
 
   goal         {TokenGoalDec}

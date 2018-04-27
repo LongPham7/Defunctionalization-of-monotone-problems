@@ -47,6 +47,6 @@ tokens :-
   "<"          {\s -> TokenSmaller}
   "<="         {\s -> TokenSmallerEq}
   "="          {\s -> TokenEq}
-  ">="         {\s -> TokenLarger}
-  ">"          {\s -> TokenLargerEq}
+  ">="         {\s -> TokenLargerEq}
+  ">"          {\s -> TokenLarger}
   $digit+      {\s -> TokenNum (read s)}
