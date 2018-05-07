@@ -1,14 +1,16 @@
 environment
 succ : int->int->bool
-repeat : (int->int->bool)->int->int->int->bool
+# Because 'repeat' is a reserved string in Z3, the relational variable below
+# is renamed to 'repeat_function'.
+repeat_function : (int->int->bool)->int->int->int->bool
 
 program
 succ := \n: int. \r: int. r = n + 1;
-repeat := \f: (int -> int -> bool). \n: int. \s: int. \r: int. (
+repeat_function := \f: (int -> int -> bool). \n: int. \s: int. \r: int. (
   (n <= 0 && r = s)
   ||
-  (n > 0 && (E i: int. E j: int. i = n - 1 && repeat f i s j && f j r ))
+  (n > 0 && (E i: int. E j: int. i = n - 1 && repeat_function f i s j && f j r ))
 );
 
 goal
-E n: int. E r: int. n > 0 && repeat succ n 0 r && r <= n
+E n: int. E r: int. n > 0 && repeat_function succ n 0 r && r <= n
