@@ -1,6 +1,6 @@
 # Defunctionalization of monotone logic program safety problems
 
-This is a Haskell program that takes in the specification of a monotone logic program safety problem (often abbreviated as a monotone problem) and produces the result of defunctionalizing the input problem. For simplicity, the constraint language is restricted to the language of integers with addition and subtraction. 
+This is a Haskell program that takes in the specification of a monotone logic program safety problem (often abbreviated as a monotone problem) and returns the result of defunctionalizing the input problem. For simplicity, the constraint language is restricted to the language of integers with addition and subtraction. 
 
 A web interface is available [here](http://mjolnir.cs.ox.ac.uk/dfhochc/).
 
@@ -14,7 +14,7 @@ It is natural to express properties to be verified as logical statements. By con
 
 Monotone problems are examples of such logic-based representations of verification problems. A monotone problem is given as a triple (&#916;, P, G), where &#916; is a sort environment, P is a logic program, and G is a goal formula. P represents a higher-order program, which can contain higher-order functions. 
 
-Although verification of first-order programs has been extensively studied, not all techniques developed for verification of first-order programs are applicable to higher-order programs because higher-order programs present some challenges that do not exist in first-order programs. To bridge the gap between higher-order verification problems and first-order ones, I developed an algorithm based on John Reynold's defunctionalization to convert higher-order monotone problems to first-order ones.
+Although verification of first-order programs has been extensively studied, not all techniques developed for verification of first-order programs are applicable to higher-order programs because higher-order programs present some challenges that do not exist in first-order programs. To bridge the gap between higher-order verification problems and first-order ones, I developed an algorithm based on John Reynolds's defunctionalization to convert higher-order monotone problems to first-order ones.
 
 For more information about verification of monotone problems, please refer to *Higher-Order Constrained Horn Clauses and Refinement Types* by Toby Cathcart Burn, C.-H Luke Ong, and Steven Ramsay. 
 
