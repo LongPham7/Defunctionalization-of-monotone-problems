@@ -1,8 +1,8 @@
 environment
-succ : int->int->bool
+succ : int -> int -> bool
 # Because 'repeat' is a reserved string in Z3, the relational variable below
 # is renamed to 'repeat_function'.
-repeat_function : (int->int->bool)->int->int->int->bool
+repeat_function : (int -> int -> bool) -> int -> int -> int -> bool
 
 program
 succ := \n: int. \r: int. r = n + 1;

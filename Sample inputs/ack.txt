@@ -1,5 +1,5 @@
 environment
-ack: int->int->int->bool
+ack: int -> int -> int -> bool
 
 program
 ack := \m: int. \n: int. \r: int. (

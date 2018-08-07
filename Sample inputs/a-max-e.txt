@@ -1,6 +1,6 @@
 environment
-make_array: int->int->int->bool
-array_max: int->int->(int->int->bool)->int->int->bool
+make_array: int -> int -> int -> bool
+array_max: int -> int -> (int -> int -> bool) -> int -> int -> bool
 
 program
 make_array := \n: int. \i: int. \r: int. n = i + r;
@@ -10,5 +10,10 @@ array_max := \n: int. \i: int. \a: (int -> int -> bool). \m: int. \r: int. (
   (i < n && (E x: int. a i x && (E z: int. ((x > m && z = x) || (x <= m && z = m)) && (E w: int. w = i + 1 && array_max n w a z r))))
 );
 
+# In the original test suite of MoCHi, a-max and a-max-e are identical.
+# It seems to hold that those test cases with the suffix '-e' should be unsolvable
+# and those without the suffix should be solvable. 
+# Therefore, in keeping with this trend, a-max-e need be modified such that it becomes unsolvable. 
+# The goal formula below is modified in the way Toby Cathcart Burn suggested.
 goal
-E n: int. E m: int. E i: int. E x: int. (i = 0 && x = 0 - 1 && n > 0 && array_max n i (make_array n) x m && m + 1 < n)
+E n: int. E m: int. E i: int. E x: int. (i = 0 && x = 0 - 1 && n > 0 && array_max n i (make_array n) x m && m < n + 1)

@@ -1,5 +1,5 @@
 environment
-mc91: int->int->bool
+mc91: int -> int -> bool
 
 program
 mc91 := \x: int. \r: int. (

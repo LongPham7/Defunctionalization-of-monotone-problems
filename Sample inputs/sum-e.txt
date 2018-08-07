@@ -1,5 +1,5 @@
 environment
-sum : int->int->bool
+sum : int -> int -> bool
 
 program
 sum := \n: int. \r: int. 

@@ -1,6 +1,6 @@
 environment
-f: (int->int->bool)->int->int->bool
-succ: int->int->bool
+f: (int -> int -> bool) -> int -> int -> bool
+succ: int -> int -> bool
 
 program
 succ := \x: int. \r: int. r = x + 1;

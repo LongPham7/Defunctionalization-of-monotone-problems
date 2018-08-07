@@ -1,6 +1,6 @@
 environment
-max: (int->int->int->bool)->int->int->int->int->bool
-f: int->int->int->bool
+max: (int -> int -> int -> bool) -> int -> int -> int -> int -> bool
+f: int -> int -> int -> bool
 
 program
 max := \m: (int -> int -> int -> bool). \x: int. \y: int. \z: int. \r: int. (E p: int. m x y p && m p z r);

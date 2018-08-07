@@ -1,6 +1,6 @@
 environment
-make_array: int->int->int->bool
-array_max: int->int->(int->int->bool)->int->int->bool
+make_array: int -> int -> int -> bool
+array_max: int -> int -> (int -> int -> bool) -> int -> int -> bool
 
 program
 make_array := \n: int. \i: int. \r: int. n = i + r;

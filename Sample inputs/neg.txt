@@ -1,7 +1,7 @@
 environment
-g : int->int->bool
-twice : (int->int->bool)->(int->bool)->int->bool
-neg : int->int->bool
+g : int -> int -> bool
+twice : (int -> int -> bool) -> (int -> bool) -> int -> bool
+neg : int -> int -> bool
 
 program
 g := \x: int. \r: int. x = r;
