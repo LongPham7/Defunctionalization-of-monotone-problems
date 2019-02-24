@@ -1,0 +1,19 @@
+# This sample is based on the higher-order Horn clause problem submitted by
+# Naoki Kobayashi on January 22nd, 2019, to the GitHub repository of HORUS
+# for a potential bug report. 
+
+environment
+sum : int -> (int -> bool) -> bool
+greater : int -> int -> bool
+truth : int -> bool
+
+program
+sum := \n: int. \k_sum: int -> bool. (n <= 0 && k_sum 0) || (n > 0 && sum n truth);
+greater := \x: int. \y: int. x > y;
+
+# 'true' is a built-in token in Z3 and hence cannot be used. 
+# This is why the following top-level relational variable is named 'truth' instead of 'true'. 
+truth := \x: int. 1=1;
+
+goal
+E y:int. sum y (greater y)
