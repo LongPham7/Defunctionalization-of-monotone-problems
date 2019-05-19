@@ -2,7 +2,7 @@
 
 This is a Haskell program that takes in the specification of a monotone logic program safety problem (often abbreviated as a monotone problem) and returns the result of defunctionalizing the input problem. For simplicity, the constraint language is restricted to the language of integers with addition and subtraction. 
 
-A web interface is available [here](http://mjolnir.cs.ox.ac.uk/dfhochc/).
+A web interface is available [here](http://mjolnir.cs.ox.ac.uk/dfhochc/). The research paper on which this code is based is [here](https://arxiv.org/abs/1810.03598). 
 
 ## Background
 
@@ -16,7 +16,7 @@ Monotone problems are examples of such logic-based representations of verificati
 
 Although verification of first-order programs has been extensively studied, not all techniques developed for verification of first-order programs are applicable to higher-order programs because higher-order programs present some challenges that do not exist in first-order programs. To bridge the gap between higher-order verification problems and first-order ones, I developed an algorithm based on John Reynolds's defunctionalization to convert higher-order monotone problems to first-order ones.
 
-For more information about verification of monotone problems, please refer to *Higher-Order Constrained Horn Clauses and Refinement Types* by Toby Cathcart Burn, C.-H Luke Ong, and Steven Ramsay. 
+For more information about verification of monotone problems, please refer to *Higher-Order Constrained Horn Clauses and Refinement Types* by Toby Cathcart Burn, C.-H Luke Ong, and Steven Ramsay ([the arXiv version](https://arxiv.org/abs/1705.06216) or [the conference version](https://dl.acm.org/citation.cfm?id=3158099)). 
 
 ## Run
 
@@ -51,26 +51,28 @@ To execute this executable file, run
 
     .\Main -f SampleInput.txt -m
 
-Here, `-f` allows the user to specify an input file name. The `-m` flag sets the output format to the same one as the input format. 
+Here, `-f` allows the user to specify an input file name, and the `-m` flag sets the output format to the same one as the input format. `SampleInput.txt` is a sample input file available in the root folder of this project. 
 
-With respect to options for the output format, two more flags are supported: `-p` refers to the pure SMT-LIB2 format, and `-e` refers to the extended SMT-LIB2 format for Z3. 
+With respect to options for the output format, two more flags are supported: `-p` refers to the pure SMT-LIB2 format, and `-e` refers to the extended SMT-LIB2 format for Z3 (See the warning below). 
 
 If you need any help with command line options, use the `-h` options. 
 
-**Warning**: Z3 supports both the extended and pure SMT-LIB2 formats. However, at the moment, only the output produced by `-p` yields a correct result after being fed into Z3. Although the output of `-e` is processed by Z3 without any error message, Z3 does not produce correct results. This is likely due to my insufficient understanding of the extended format.
+**Warning**: Z3 supports both the extended and pure SMT-LIB2 formats. However, at the moment, only the output produced by `-p` yields a correct result after being fed into Z3. Although the output of `-e` is processed by Z3 without issuing any error message, Z3 does not produce correct results. This is likely due to my insufficient understanding of the extended SMT-LIB2 format.
 
 ## Sample inputs
 
-A sample source monotone problem is available in SampleInput.txt. The folder "Sample inputs"
+A sample source monotone problem is available in `SampleInput.txt`. The folder "Sample inputs"
 contains additional source monotone problems. The samples in "Sample inputs" are obtained by manually
 translating some of the Horn clause problems in Toby Cathcart Burn's 
 [implementation project](https://github.com/penteract/HigherOrderHornRefinement) to monotone problems.
 His samples are originally from [MoCHi](http://www-kb.is.s.u-tokyo.ac.jp/~ryosuke/mochi/). 
 
 The algorithm for turning Horn clause problems into monotone problems is 
-described in *Higher-Order Constrained Horn Clauses and Refinement Types* by Toby Cathcart Burn, C.-H Luke Ong, and Steven Ramsay.
+described in *Higher-Order Constrained Horn Clauses and Refinement Types* by Toby Cathcart Burn, C.-H Luke Ong, and Steven Ramsay ([the arXiv version](https://arxiv.org/abs/1705.06216) or [the conference version](https://dl.acm.org/citation.cfm?id=3158099)).
 
 ## Input format
+
+To specify an input monotone problem, an input file must contain three section: environment, program, and goal. 
 
 The **environment** section is a list of bindings of top-level relational variables and sorts. Each binding may span multiple lines. 
 
